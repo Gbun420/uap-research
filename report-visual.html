@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The 110 Hz Connection — Enhanced Visual Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #050508;
+            color: #e0e0e0;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(ellipse at 20% 30%, rgba(100, 255, 218, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(138, 43, 226, 0.03) 0%, transparent 50%),
+                #050508;
+        }
+        
+        /* Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #64ffda;
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 20s infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+        
+        /* Progress */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #64ffda, #8a2be2, #64ffda);
+            background-size: 200% 100%;
+            animation: gradient-shift 3s ease infinite;
+            z-index: 1000;
+            transition: width 0.1s;
+        }
+        
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* Cover Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Animated Rings */
+        .ring {
+            position: absolute;
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            border-radius: 50%;
+            animation: ring-pulse 4s ease-out infinite;
+        }
+        
+        .ring:nth-child(1) { width: 200px; height: 200px; animation-delay: 0s; }
+        .ring:nth-child(2) { width: 400px; height: 400px; animation-delay: 1s; }
+        .ring:nth-child(3) { width: 600px; height: 600px; animation-delay: 2s; }
+        .ring:nth-child(4) { width: 800px; height: 800px; animation-delay: 3s; }
+        
+        @keyframes ring-pulse {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .frequency-display {
+            font-size: clamp(4rem, 15vw, 10rem);
+            font-weight: 100;
+            color: #64ffda;
+            text-shadow: 0 0 60px rgba(100, 255, 218, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+            line-height: 1;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 40px rgba(100, 255, 218, 0.3); }
+            to { text-shadow: 0 0 80px rgba(100, 255, 218, 0.6), 0 0 120px rgba(100, 255, 218, 0.3); }
+        }
+        
+        .frequency-unit {
+            font-size: clamp(1rem, 3vw, 2rem);
+            color: #666;
+            letter-spacing: 0.5em;
+            margin-top: 0.5rem;
+        }
+        
+        .hero-title {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            color: #fff;
+            margin-top: 2rem;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+        }
+        
+        .hero-subtitle {
+            font-size: 1rem;
+            color: #666;
+            max-width: 500px;
+            margin: 1rem auto;
+        }
+        
+        .hero-stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .hero-stat {
+            text-align: center;
+        }
+        
+        .hero-stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #64ffda;
+        }
+        
+        .hero-stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        /* Visual Cards */
+        .section {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 6rem 2rem;
+        }
+        
+        .section-number {
+            font-size: 0.8rem;
+            color: #64ffda;
+            letter-spacing: 0.3em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .section-title {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            color: #fff;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+        
+        /* Visual Timeline */
+        .visual-timeline {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin: 3rem 0;
+            position: relative;
+            padding: 2rem 0;
+        }
+        
+        .visual-timeline::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #64ffda, #8a2be2, #64ffda);
+        }
+        
+        .timeline-node {
+            position: relative;
+            text-align: center;
+            flex: 1;
+            z-index: 1;
+        }
+        
+        .timeline-icon {
+            width: 80px;
+            height: 80px;
+            background: #0a0a0f;
+            border: 2px solid #64ffda;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1rem;
+            transition: all 0.3s;
+        }
+        
+        .timeline-node:hover .timeline-icon {
+            background: rgba(100, 255, 218, 0.1);
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(100, 255, 218, 0.3);
+        }
+        
+        .timeline-year {
+            font-weight: 700;
+            color: #64ffda;
+            font-size: 1.1rem;
+        }
+        
+        .timeline-name {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 0.3rem;
+        }
+        
+        .timeline-location {
+            font-size: 0.75rem;
+            color: #555;
+        }
+        
+        /* Brain Visualization */
+        .brain-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4rem;
+            margin: 3rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .brain-hemisphere {
+            width: 200px;
+            height: 250px;
+            border-radius: 50% 50% 45% 45%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 1.5rem;
+            transition: all 0.5s ease;
+            position: relative;
+        }
+        
+        .brain-left {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+            border: 2px solid #333;
+            border-radius: 50% 10% 10% 50%;
+        }
+        
+        .brain-right {
+            background: linear-gradient(135deg, #1a2e2e 0%, #0f1a1a 100%);
+            border: 2px solid #64ffda;
+            border-radius: 10% 50% 50% 10%;
+            box-shadow: 0 0 40px rgba(100, 255, 218, 0.3);
+            animation: brain-pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes brain-pulse {
+            0%, 100% { box-shadow: 0 0 40px rgba(100, 255, 218, 0.3); }
+            50% { box-shadow: 0 0 60px rgba(100, 255, 218, 0.5); }
+        }
+        
+        .brain-left .icon { font-size: 2.5rem; opacity: 0.5; }
+        .brain-right .icon { font-size: 3rem; }
+        
+        .brain-left h4 { color: #666; margin: 0.5rem 0; }
+        .brain-right h4 { color: #64ffda; margin: 0.5rem 0; }
+        
+        .brain-left p, .brain-right p { font-size: 0.8rem; }
+        
+        .brain-status {
+            font-size: 0.7rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            margin-top: 0.5rem;
+        }
+        
+        .brain-left .brain-status {
+            background: rgba(255, 100, 100, 0.2);
+            color: #ff6b6b;
+        }
+        
+        .brain-right .brain-status {
+            background: rgba(100, 255, 218, 0.2);
+            color: #64ffda;
+        }
+        
+        .vs-badge {
+            font-size: 2rem;
+            color: #333;
+            font-weight: 700;
+        }
+        
+        /* Comparison Panel */
+        .comparison-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 3rem 0;
+        }
+        
+        .comparison-side {
+            padding: 2rem;
+        }
+        
+        .comparison-side.brain {
+            background: linear-gradient(135deg, #0f1a2e 0%, #0a0f1a 100%);
+        }
+        
+        .comparison-side.uap {
+            background: linear-gradient(135deg, #2e0f2e 0%, #1a0a1a 100%);
+        }
+        
+        .comparison-side h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+        
+        .comparison-side.brain h3 { color: #64ffda; }
+        .comparison-side.uap h3 { color: #da70d6; }
+        
+        .comparison-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .comparison-item:last-child { border: none; }
+        
+        .comparison-item .icon {
+            font-size: 1.5rem;
+            width: 40px;
+            text-align: center;
+        }
+        
+        .comparison-item p {
+            font-size: 0.95rem;
+            color: #ccc;
+        }
+        
+        /* Animated Diagram */
+        .animated-diagram {
+            background: linear-gradient(135deg, #0a0a0f 0%, #0f0f1a 100%);
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 3rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .animated-diagram::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(100, 255, 218, 0.05), transparent);
+            animation: rotate 10s linear infinite;
+        }
+        
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+        
+        .diagram-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .diagram-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .diagram-box {
+            background: rgba(10, 10, 15, 0.8);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        .diagram-box.highlight {
+            border-color: #64ffda;
+            box-shadow: 0 0 20px rgba(100, 255, 218, 0.2);
+        }
+        
+        .diagram-box .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .diagram-box .label { font-size: 0.8rem; color: #888; }
+        .diagram-box .value { font-size: 1rem; color: #fff; font-weight: 600; }
+        
+        .diagram-arrow {
+            font-size: 1.5rem;
+            color: #64ffda;
+        }
+        
+        /* Big Quote */
+        .big-quote {
+            text-align: center;
+            padding: 4rem 2rem;
+            position: relative;
+        }
+        
+        .big-quote-text {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-style: italic;
+            color: #fff;
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .big-quote-mark {
+            position: absolute;
+            font-size: 15rem;
+            color: rgba(100, 255, 218, 0.05);
+            font-family: Georgia, serif;
+            top: -2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            line-height: 1;
+        }
+        
+        /* Geo Card */
+        .geo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .geo-card {
+            background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid #333;
+            transition: all 0.3s;
+        }
+        
+        .geo-card:hover {
+            transform: translateY(-5px);
+            border-color: #64ffda;
+        }
+        
+        .geo-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .geo-card h4 {
+            color: #64ffda;
+            margin-bottom: 0.5rem;
+        }
+        
+        .geo-card p {
+            font-size: 0.85rem;
+            color: #888;
+        }
+        
+        /* Theory Cards */
+        .theory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .theory-card {
+            background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
+            border-radius: 16px;
+            padding: 2rem 1.5rem;
+            border: 1px solid #333;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .theory-card::before {
+            content: attr(data-number);
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            font-size: 5rem;
+            font-weight: 700;
+            color: rgba(100, 255, 218, 0.05);
+        }
+        
+        .theory-card .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .theory-card h4 {
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .theory-card p {
+            font-size: 0.85rem;
+            color: #888;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* CTA Section */
+        .cta-section {
+            text-align: center;
+            padding: 6rem 2rem;
+            background: radial-gradient(ellipse at center, rgba(100, 255, 218, 0.05) 0%, transparent 70%);
+        }
+        
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #64ffda, #4ecdc4);
+            color: #0a0a0f;
+            padding: 1.2rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            margin: 1rem;
+        }
+        
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(100, 255, 218, 0.4);
+        }
+        
+        .cta-button.secondary {
+            background: transparent;
+            border: 2px solid #64ffda;
+            color: #64ffda;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #444;
+            border-top: 1px solid #111;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-panel { grid-template-columns: 1fr; }
+            .brain-container { gap: 2rem; }
+            .brain-hemisphere { width: 150px; height: 200px; }
+            .visual-timeline { flex-direction: column; gap: 2rem; }
+            .visual-timeline::before { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="particles">
+        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
+        <div class="particle" style="left: 40%; animation-delay: 6s;"></div>
+        <div class="particle" style="left: 50%; animation-delay: 8s;"></div>
+        <div class="particle" style="left: 60%; animation-delay: 10s;"></div>
+        <div class="particle" style="left: 70%; animation-delay: 12s;"></div>
+        <div class="particle" style="left: 80%; animation-delay: 14s;"></div>
+        <div class="particle" style="left: 90%; animation-delay: 16s;"></div>
+    </div>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="ring"></div>
+        <div class="ring"></div>
+        <div class="ring"></div>
+        <div class="ring"></div>
+        
+        <div class="hero-content">
+            <div class="frequency-display">110</div>
+            <div class="frequency-unit">HERTZ</div>
+            <h1 class="hero-title">The Frequency That Connects Everything</h1>
+            <p class="hero-subtitle">Ancient temples. Your brain. Something in the sky. One frequency links them all.</p>
+            
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-value">6000</div>
+                    <div class="hero-stat-label">Years</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">4</div>
+                    <div class="hero-stat-label">Continents</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">1</div>
+                    <div class="hero-stat-label">Frequency</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 1: ANCIENT SITES -->
+    <section class="section" id="sites">
+        <div class="section-number">01 — DISCOVERY</div>
+        <h2 class="section-title">Ancient Sites, Same Frequency</h2>
+        
+        <div class="visual-timeline">
+            <div class="timeline-node">
+                <div class="timeline-icon">🏛️</div>
+                <div class="timeline-year">4000 BC</div>
+                <div class="timeline-name">Hypogeum</div>
+                <div class="timeline-location">Malta</div>
+            </div>
+            <div class="timeline-node">
+                <div class="timeline-icon">🪨</div>
+                <div class="timeline-year">3000 BC</div>
+                <div class="timeline-name">Stonehenge</div>
+                <div class="timeline-location">UK</div>
+            </div>
+            <div class="timeline-node">
+                <div class="timeline-icon">⛰️</div>
+                <div class="timeline-year">1200 BC</div>
+                <div class="timeline-name">Chavín</div>
+                <div class="timeline-location">Peru</div>
+            </div>
+            <div class="timeline-node">
+                <div class="timeline-icon">⛪</div>
+                <div class="timeline-year">325 AD</div>
+                <div class="timeline-name">Holy Sepulchre</div>
+                <div class="timeline-location">Jerusalem</div>
+            </div>
+            <div class="timeline-node">
+                <div class="timeline-icon">🏰</div>
+                <div class="timeline-year">1100 AD</div>
+                <div class="timeline-name">Cathedrals</div>
+                <div class="timeline-location">Europe</div>
+            </div>
+        </div>
+        
+        <div class="big-quote">
+            <div class="big-quote-mark">"</div>
+            <p class="big-quote-text">6000 years. 4 continents. Different civilizations. The same frequency. This is not coincidence.</p>
+        </div>
+    </section>
+
+    <!-- SECTION 2: YOUR BRAIN -->
+    <section class="section" id="brain">
+        <div class="section-number">02 — NEUROSCIENCE</div>
+        <h2 class="section-title">What 110 Hz Does To Your Brain</h2>
+        
+        <div class="brain-container">
+            <div class="brain-hemisphere brain-left">
+                <div class="icon">🗣️</div>
+                <h4>Language</h4>
+                <p>Logic · Words · Analysis</p>
+                <div class="brain-status">↓ SUPPRESSED</div>
+            </div>
+            <div class="vs-badge">VS</div>
+            <div class="brain-hemisphere brain-right">
+                <div class="icon">🌀</div>
+                <h4>Spatial</h4>
+                <p>Patterns · Intuition · Presence</p>
+                <div class="brain-status">↑ ENHANCED</div>
+            </div>
+        </div>
+        
+        <p style="text-align: center; color: #888; margin: 2rem 0;">This shift happens within <strong style="color: #64ffda;">10 seconds</strong> of 110 Hz exposure.</p>
+    </section>
+
+    <!-- SECTION 3: PATTERN MATCH -->
+    <section class="section" id="match">
+        <div class="section-number">03 — THE PATTERN</div>
+        <h2 class="section-title">The Match Is Exact</h2>
+        
+        <div class="comparison-panel">
+            <div class="comparison-side brain">
+                <h3>🧠 110 Hz Brain State</h3>
+                <div class="comparison-item">
+                    <div class="icon">🔇</div>
+                    <p>Can't process language</p>
+                </div>
+                <div class="comparison-item">
+                    <div class="icon">🌐</div>
+                    <p>Enhanced spatial awareness</p>
+                </div>
+                <div class="comparison-item">
+                    <div class="icon">⏱️</div>
+                    <p>Time feels different</p>
+                </div>
+                <div class="comparison-item">
+                    <div class="icon">🔮</div>
+                    <p>"Knowing" without words</p>
+                </div>
+            </div>
+            <div class="comparison-side uap">
+                <h3>🛸 UAP Encounters</h3>
+                <div class="comparison-item">
+                    <div class="icon">🤐</div>
+                    <p>"I couldn't speak"</p>
+                </div>
+                <div class="comparison-item">
+                    <div class="icon">👁️</div>
+                    <p>"Felt its presence"</p>
+                </div>
+                <div class="comparison-item">
+                    <div class="icon">⏳</div>
+                    <p>"Time stopped"</p>
+                </div>
+                <div class="comparison-item">
+                    <div class="icon">💭</div>
+                    <p>"Telepathic communication"</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: THE PHYSICS -->
+    <section class="section" id="physics">
+        <div class="section-number">04 — THE PHYSICS</div>
+        <h2 class="section-title">Not Aliens. Gravitational Physics.</h2>
+        
+        <div class="animated-diagram">
+            <div class="diagram-content">
+                <div class="diagram-row">
+                    <div class="diagram-box">
+                        <div class="icon">🚗</div>
+                        <div class="label">Normal Tech</div>
+                        <div class="value">Moves through space</div>
+                    </div>
+                    <div class="diagram-arrow">→</div>
+                    <div class="diagram-box">
+                        <div class="icon">💨</div>
+                        <div class="label">Result</div>
+                        <div class="value">Friction, drag, fuel</div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; color: #333; margin: 2rem 0;">VS</div>
+                
+                <div class="diagram-row">
+                    <div class="diagram-box highlight">
+                        <div class="icon">🌀</div>
+                        <div class="label">UAP Phenomenon</div>
+                        <div class="value">Warps space itself</div>
+                    </div>
+                    <div class="diagram-arrow">→</div>
+                    <div class="diagram-box highlight">
+                        <div class="icon">✨</div>
+                        <div class="label">Result</div>
+                        <div class="value">No friction. No fuel. Any medium.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="geo-grid">
+            <div class="geo-card">
+                <div class="icon">🚀</div>
+                <h4>Instant Acceleration</h4>
+                <p>No inertia. No G-forces. Spacetime warping.</p>
+            </div>
+            <div class="geo-card">
+                <div class="icon">🌊</div>
+                <h4>Transmedium</h4>
+                <p>Air → Water → Space. Medium is irrelevant.</p>
+            </div>
+            <div class="geo-card">
+                <div class="icon">✨</div>
+                <h4>The Glow</h4>
+                <p>Gravitational lensing. Light bends around it.</p>
+            </div>
+            <div class="geo-card">
+                <div class="icon">☢️</div>
+                <h4>Nuclear Sites</h4>
+                <p>Strongest EM signatures attract the phenomenon.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: MALTA -->
+    <section class="section" id="malta">
+        <div class="section-number">05 — THE MALTA CONNECTION</div>
+        <h2 class="section-title">Why This Island?</h2>
+        
+        <div class="animated-diagram">
+            <div class="diagram-content">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <div style="color: #555; font-size: 0.9rem;">African Plate ←</div>
+                    <div style="height: 3px; background: linear-gradient(90deg, #333, #64ffda, #333); margin: 1rem 0;"></div>
+                    <div style="color: #555; font-size: 0.9rem;">→ Eurasian Plate</div>
+                </div>
+                
+                <div class="diagram-row" style="justify-content: center;">
+                    <div class="diagram-box" style="min-width: 250px;">
+                        <div class="icon">🏝️</div>
+                        <div class="label">MALTA</div>
+                        <div class="value">Continental Shelf Edge</div>
+                    </div>
+                    <div class="diagram-box highlight" style="min-width: 200px;">
+                        <div class="icon">🏛️</div>
+                        <div class="label">HYPOGEUM</div>
+                        <div class="value">110 Hz · 10.6m Deep</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="geo-grid">
+            <div class="geo-card">
+                <div class="icon">🌍</div>
+                <h4>Plate Collision</h4>
+                <p>African meets Eurasian. Crustal stress. Piezoelectric effects.</p>
+            </div>
+            <div class="geo-card">
+                <div class="icon">🏖️</div>
+                <h4>Shelf Edge</h4>
+                <p>UAP hotspots cluster at continental shelf edges. Malta is on one.</p>
+            </div>
+            <div class="geo-card">
+                <div class="icon">🪨</div>
+                <h4>Perfect Limestone</h4>
+                <p>Globigerina = ideal acoustic resonance. Easy to carve precisely.</p>
+            </div>
+            <div class="geo-card">
+                <div class="icon">💧</div>
+                <h4>Underground Water</h4>
+                <p>Aquifers with saltwater EM gradients. Sound amplifier.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 6: THE THEORY -->
+    <section class="section" id="theory">
+        <div class="section-number">06 — THE THEORY</div>
+        <h2 class="section-title">What Ancient Builders Knew</h2>
+        
+        <div class="big-quote">
+            <div class="big-quote-mark">"</div>
+            <p class="big-quote-text">A natural gravitational phenomenon exists. Ancient civilizations discovered it. They built temples to interface with it through 110 Hz.</p>
+        </div>
+        
+        <div class="theory-grid">
+            <div class="theory-card" data-number="1">
+                <div class="icon">🌍</div>
+                <h4>Phenomenon Exists</h4>
+                <p>Natural gravitational process at continental shelf edges. Influenced by solar activity.</p>
+            </div>
+            <div class="theory-card" data-number="2">
+                <div class="icon">🧠</div>
+                <h4>Consciousness Link</h4>
+                <p>Interacts with consciousness at Planck scale (Penrose-Hameroff theory).</p>
+            </div>
+            <div class="theory-card" data-number="3">
+                <div class="icon">🔊</div>
+                <h4>110 Hz = Access</h4>
+                <p>Shifts brain to the state that can interface with the phenomenon.</p>
+            </div>
+            <div class="theory-card" data-number="4">
+                <div class="icon">🏛️</div>
+                <h4>Temples = Instruments</h4>
+                <p>Stonehenge, Hypogeum, cathedrals — acoustic instruments for 110 Hz.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section" id="try">
+        <h2 class="section-title">Ready To Try?</h2>
+        <p style="color: #888; margin-bottom: 2rem;">Experience 110 Hz with the Hypogeum Simulator. Headphones required.</p>
+        
+        <a href="hypogeum-simulator.html" class="cta-button">🔊 Open Simulator</a>
+        <a href="report-adhd.html" class="cta-button secondary">📋 Full ADHD Report</a>
+    </section>
+
+    <footer>
+        <p style="color: #64ffda; font-size: 1.2rem;">🌬️</p>
+        <p style="margin-top: 1rem;">The 110 Hz Connection</p>
+        <p style="font-size: 0.8rem; margin-top: 0.5rem;">Zephyr · Malta · March 2026</p>
+    </footer>
+
+    <script>
+        // Progress bar
+        window.addEventListener('scroll', () => {
+            const scrollTop = document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = (scrollTop / scrollHeight) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        });
+
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.geo-card, .theory-card, .timeline-node, .comparison-item').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.6s ease';
+            observer.observe(el);
+        });
+
+        // Add stagger delay
+        document.querySelectorAll('.geo-card, .theory-card').forEach((el, index) => {
+            el.style.transitionDelay = `${index * 0.1}s`;
+        });
+    </script>
+</body>
+</html>
