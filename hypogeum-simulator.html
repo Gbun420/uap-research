@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hypogeum Simulator — 110 Hz Acoustic Experience</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0a0a0f 100%);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        
+        h1 span { color: #64ffda; }
+        
+        .subtitle {
+            color: #888;
+            font-size: 1.1rem;
+        }
+        
+        .warning {
+            background: linear-gradient(90deg, #2e1a1a, #1a1a2e);
+            border: 1px solid #ff6b6b;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.5rem auto;
+            max-width: 600px;
+            font-size: 0.9rem;
+        }
+        
+        .simulator {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .simulator { grid-template-columns: 1fr; }
+        }
+        
+        .panel {
+            background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .panel h2 {
+            color: #64ffda;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.5rem;
+        }
+        
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .control-group label {
+            display: block;
+            color: #888;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .frequency-display {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #64ffda;
+            text-align: center;
+            padding: 1rem;
+            background: #0a0a0f;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .frequency-display small {
+            font-size: 1rem;
+            color: #888;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            -webkit-appearance: none;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #64ffda;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #64ffda, #4ecdc4);
+            color: #0a0a0f;
+        }
+        
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(100, 255, 218, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: #fff;
+        }
+        
+        .btn-secondary {
+            background: #333;
+            color: #fff;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        .visualizer {
+            width: 100%;
+            height: 200px;
+            background: #0a0a0f;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .preset-btn {
+            padding: 0.8rem;
+            background: #0a0a0f;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .preset-btn:hover, .preset-btn.active {
+            border-color: #64ffda;
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .preset-btn strong {
+            display: block;
+            color: #64ffda;
+        }
+        
+        .preset-btn small {
+            color: #888;
+            font-size: 0.8rem;
+        }
+        
+        .questionnaire {
+            margin-top: 2rem;
+        }
+        
+        .question {
+            margin-bottom: 1.5rem;
+        }
+        
+        .question label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+        
+        .scale {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+        
+        .scale input {
+            display: none;
+        }
+        
+        .scale label {
+            flex: 1;
+            text-align: center;
+            padding: 0.8rem;
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .scale input:checked + label {
+            border-color: #64ffda;
+            background: rgba(100, 255, 218, 0.2);
+        }
+        
+        .results-panel {
+            display: none;
+            margin-top: 2rem;
+        }
+        
+        .results-panel.visible {
+            display: block;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem;
+            border-bottom: 1px solid #333;
+        }
+        
+        .result-item span:last-child {
+            color: #64ffda;
+            font-weight: 600;
+        }
+        
+        .brain-visual {
+            width: 100%;
+            height: 300px;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0f 70%);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .brain-visual::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(ellipse at 60% 50%, rgba(100, 255, 218, 0.3) 0%, transparent 70%);
+            transition: all 1s ease;
+        }
+        
+        .brain-visual.active::before {
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(ellipse at 60% 50%, rgba(100, 255, 218, 0.5) 0%, rgba(100, 255, 218, 0.1) 50%, transparent 70%);
+        }
+        
+        .brain-label {
+            position: absolute;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .brain-label.left { left: 10%; top: 40%; }
+        .brain-label.right { right: 10%; top: 40%; }
+        
+        .brain-label.active {
+            color: #64ffda;
+            border: 1px solid #64ffda;
+        }
+        
+        .timer {
+            font-size: 2rem;
+            text-align: center;
+            color: #64ffda;
+            margin: 1rem 0;
+            font-family: monospace;
+        }
+        
+        .duration-selector {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .duration-btn {
+            padding: 0.5rem 1rem;
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #888;
+            cursor: pointer;
+        }
+        
+        .duration-btn.active {
+            border-color: #64ffda;
+            color: #64ffda;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+            border-top: 1px solid #222;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>HYPOGEUM <span>SIMULATOR</span></h1>
+        <p class="subtitle">Experience the 110 Hz acoustic environment that ancient Maltese builders engineered</p>
+        <div class="warning">
+            ⚠️ <strong>Headphones Required</strong> — Use over-ear headphones for best results. 
+            Start at low volume and increase gradually. 
+            If you feel uncomfortable, stop immediately.
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="simulator">
+            <!-- Left Panel: Controls -->
+            <div class="panel">
+                <h2>🔊 Acoustic Controls</h2>
+                
+                <div class="control-group">
+                    <label>Frequency</label>
+                    <div class="frequency-display">
+                        <span id="freqValue">110</span> <small>Hz</small>
+                    </div>
+                    <input type="range" id="frequency" min="20" max="200" value="110" step="1">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #666;">
+                        <span>20 Hz</span>
+                        <span>110 Hz (Hypogeum)</span>
+                        <span>200 Hz</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>Volume</label>
+                    <input type="range" id="volume" min="0" max="100" value="30">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #666;">
+                        <span>0%</span>
+                        <span id="volValue">30%</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>Reverb (Limestone Chamber Simulation)</label>
+                    <input type="range" id="reverb" min="0" max="100" value="60">
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-primary" id="startBtn">▶ Start Experience</button>
+                    <button class="btn btn-danger" id="stopBtn" disabled>■ Stop</button>
+                </div>
+                
+                <div class="timer" id="timer">00:00</div>
+                
+                <div class="duration-selector">
+                    <button class="duration-btn active" data-duration="60">1 min</button>
+                    <button class="duration-btn" data-duration="180">3 min</button>
+                    <button class="duration-btn" data-duration="300">5 min</button>
+                    <button class="duration-btn" data-duration="600">10 min</button>
+                </div>
+            </div>
+            
+            <!-- Right Panel: Visualization & Presets -->
+            <div class="panel">
+                <h2>🧠 Brain Activity Simulation</h2>
+                
+                <div class="brain-visual" id="brainVisual">
+                    <div class="brain-label left" id="leftBrain">Left Hemisphere<br>(Language) — Suppressed</div>
+                    <div class="brain-label right active" id="rightBrain">Right Hemisphere<br>(Spatial) — Enhanced</div>
+                </div>
+                
+                <h2 style="margin-top: 1.5rem;">📐 Presets</h2>
+                
+                <div class="preset-grid">
+                    <div class="preset-btn" data-freq="110" data-reverb="60">
+                        <strong>Hypogeum</strong>
+                        <small>110 Hz, limestone reverb</small>
+                    </div>
+                    <div class="preset-btn" data-freq="40" data-reverb="40">
+                        <strong>Meditation</strong>
+                        <small>40 Hz, gentle reverb</small>
+                    </div>
+                    <div class="preset-btn" data-freq="7.83" data-reverb="30">
+                        <strong>Schumann</strong>
+                        <small>7.83 Hz, earth resonance</small>
+                    </div>
+                    <div class="preset-btn" data-freq="528" data-reverb="50">
+                        <strong>Solfeggio</strong>
+                        <small>528 Hz, healing frequency</small>
+                    </div>
+                </div>
+                
+                <canvas class="visualizer" id="visualizer"></canvas>
+            </div>
+        </div>
+        
+        <!-- Questionnaire -->
+        <div class="panel questionnaire" id="questionnaire" style="display: none;">
+            <h2>📋 Experience Assessment</h2>
+            <p style="color: #888; margin-bottom: 1.5rem;">Rate your experience after the session (or before for baseline)</p>
+            
+            <div class="question">
+                <label>1. How would you rate your current mental clarity?</label>
+                <div class="scale">
+                    <input type="radio" name="clarity" id="clarity1" value="1"><label for="clarity1">1</label>
+                    <input type="radio" name="clarity" id="clarity2" value="2"><label for="clarity2">2</label>
+                    <input type="radio" name="clarity" id="clarity3" value="3" checked><label for="clarity3">3</label>
+                    <input type="radio" name="clarity" id="clarity4" value="4"><label for="clarity4">4</label>
+                    <input type="radio" name="clarity" id="clarity5" value="5"><label for="clarity5">5</label>
+                </div>
+            </div>
+            
+            <div class="question">
+                <label>2. How aware are you of spatial relationships around you?</label>
+                <div class="scale">
+                    <input type="radio" name="spatial" id="spatial1" value="1"><label for="spatial1">1</label>
+                    <input type="radio" name="spatial" id="spatial2" value="2"><label for="spatial2">2</label>
+                    <input type="radio" name="spatial" id="spatial3" value="3" checked><label for="spatial3">3</label>
+                    <input type="radio" name="spatial" id="spatial4" value="4"><label for="spatial4">4</label>
+                    <input type="radio" name="spatial" id="spatial5" value="5"><label for="spatial5">5</label>
+                </div>
+            </div>
+            
+            <div class="question">
+                <label>3. Do you feel a sense of time distortion?</label>
+                <div class="scale">
+                    <input type="radio" name="time" id="time1" value="1"><label for="time1">1</label>
+                    <input type="radio" name="time" id="time2" value="2"><label for="time2">2</label>
+                    <input type="radio" name="time" id="time3" value="3" checked><label for="time3">3</label>
+                    <input type="radio" name="time" id="time4" value="4"><label for="time4">4</label>
+                    <input type="radio" name="time" id="time5" value="5"><label for="time5">5</label>
+                </div>
+            </div>
+            
+            <div class="question">
+                <label>4. How would you describe your overall state?</label>
+                <div class="scale">
+                    <input type="radio" name="state" id="state1" value="1"><label for="state1">Alert</label>
+                    <input type="radio" name="state" id="state2" value="2"><label for="state2">Calm</label>
+                    <input type="radio" name="state" id="state3" value="3" checked><label for="state3">Neutral</label>
+                    <input type="radio" name="state" id="state4" value="4"><label for="state4">Relaxed</label>
+                    <input type="radio" name="state" id="state5" value="5"><label for="state5">Altered</label>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-primary" id="saveResults">Save Results</button>
+                <button class="btn btn-secondary" id="resetAssessment">Reset</button>
+            </div>
+        </div>
+        
+        <!-- Results Panel -->
+        <div class="panel results-panel" id="resultsPanel">
+            <h2>📊 Your Session Data</h2>
+            <div class="result-item"><span>Frequency Used</span><span id="resultFreq">110 Hz</span></div>
+            <div class="result-item"><span>Duration</span><span id="resultDuration">0:00</span></div>
+            <div class="result-item"><span>Pre-Session State</span><span id="resultPre">—</span></div>
+            <div class="result-item"><span>Post-Session State</span><span id="resultPost">—</span></div>
+            <div class="result-item"><span>Clarity Change</span><span id="resultClarity">—</span></div>
+            <div class="result-item"><span>Spatial Awareness Change</span><span id="resultSpatial">—</span></div>
+            <div class="result-item"><span>Time Perception Change</span><span id="resultTime">—</span></div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Research Tool — Not for Medical Use | Based on documented 110 Hz acoustic research</p>
+        <p style="margin-top: 0.5rem; font-size: 0.8rem;">The Hypogeum of Ħal Saflieni, Malta — 4000 BC</p>
+    </footer>
+
+    <script>
+        // Audio Context and Nodes
+        let audioCtx = null;
+        let oscillator = null;
+        let gainNode = null;
+        let convolver = null;
+        let analyser = null;
+        let isPlaying = false;
+        let timerInterval = null;
+        let seconds = 0;
+        let selectedDuration = 60;
+        
+        // DOM Elements
+        const freqSlider = document.getElementById('frequency');
+        const volSlider = document.getElementById('volume');
+        const reverbSlider = document.getElementById('reverb');
+        const freqValue = document.getElementById('freqValue');
+        const volValue = document.getElementById('volValue');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const timerDisplay = document.getElementById('timer');
+        const canvas = document.getElementById('visualizer');
+        const ctx = canvas.getContext('2d');
+        const brainVisual = document.getElementById('brainVisual');
+        
+        // Pre-session data
+        let preSessionData = null;
+        
+        // Initialize canvas
+        function initCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+        initCanvas();
+        window.addEventListener('resize', initCanvas);
+        
+        // Create reverb impulse response (limestone chamber simulation)
+        function createReverbImpulse(duration, decay) {
+            const length = audioCtx.sampleRate * duration;
+            const impulse = audioCtx.createBuffer(2, length, audioCtx.sampleRate);
+            
+            for (let channel = 0; channel < 2; channel++) {
+                const data = impulse.getChannelData(channel);
+                for (let i = 0; i < length; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+                }
+            }
+            return impulse;
+        }
+        
+        // Update displays
+        freqSlider.addEventListener('input', () => {
+            freqValue.textContent = freqSlider.value;
+            if (oscillator) {
+                oscillator.frequency.setValueAtTime(parseFloat(freqSlider.value), audioCtx.currentTime);
+            }
+        });
+        
+        volSlider.addEventListener('input', () => {
+            volValue.textContent = volSlider.value + '%';
+            if (gainNode) {
+                gainNode.gain.setValueAtTime(volSlider.value / 100, audioCtx.currentTime);
+            }
+        });
+        
+        reverbSlider.addEventListener('input', () => {
+            // Reverb is applied via wet/dry mix
+        });
+        
+        // Duration buttons
+        document.querySelectorAll('.duration-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedDuration = parseInt(btn.dataset.duration);
+            });
+        });
+        
+        // Preset buttons
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                freqSlider.value = btn.dataset.freq;
+                reverbSlider.value = btn.dataset.reverb;
+                freqValue.textContent = btn.dataset.freq;
+                if (oscillator) {
+                    oscillator.frequency.setValueAtTime(parseFloat(btn.dataset.freq), audioCtx.currentTime);
+                }
+            });
+        });
+        
+        // Start audio
+        function startAudio() {
+            if (isPlaying) return;
+            
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Oscillator
+            oscillator = audioCtx.createOscillator();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(parseFloat(freqSlider.value), audioCtx.currentTime);
+            
+            // Gain
+            gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(volSlider.value / 100, audioCtx.currentTime);
+            
+            // Reverb (convolver)
+            convolver = audioCtx.createConvolver();
+            const reverbTime = 2 + (reverbSlider.value / 100) * 3; // 2-5 seconds
+            convolver.buffer = createReverbImpulse(reverbTime, 3);
+            
+            // Analyser for visualization
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 256;
+            
+            // Wet/Dry mix for reverb
+            const dryGain = audioCtx.createGain();
+            const wetGain = audioCtx.createGain();
+            dryGain.gain.value = 1 - (reverbSlider.value / 100);
+            wetGain.gain.value = reverbSlider.value / 100;
+            
+            // Connect nodes
+            oscillator.connect(gainNode);
+            gainNode.connect(dryGain);
+            gainNode.connect(convolver);
+            convolver.connect(wetGain);
+            dryGain.connect(analyser);
+            wetGain.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            
+            oscillator.start();
+            isPlaying = true;
+            
+            // UI updates
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            brainVisual.classList.add('active');
+            document.getElementById('questionnaire').style.display = 'block';
+            
+            // Start timer
+            seconds = 0;
+            timerInterval = setInterval(() => {
+                seconds++;
+                const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const secs = (seconds % 60).toString().padStart(2, '0');
+                timerDisplay.textContent = `${mins}:${secs}`;
+                
+                // Auto-stop at selected duration
+                if (seconds >= selectedDuration) {
+                    stopAudio();
+                }
+            }, 1000);
+            
+            // Start visualization
+            visualize();
+        }
+        
+        // Stop audio
+        function stopAudio() {
+            if (!isPlaying) return;
+            
+            oscillator.stop();
+            audioCtx.close();
+            isPlaying = false;
+            
+            // UI updates
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            brainVisual.classList.remove('active');
+            clearInterval(timerInterval);
+            
+            // Show results
+            showResults();
+        }
+        
+        // Visualization
+        function visualize() {
+            if (!isPlaying) return;
+            
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            
+            function draw() {
+                if (!isPlaying) return;
+                requestAnimationFrame(draw);
+                
+                analyser.getByteFrequencyData(dataArray);
+                
+                ctx.fillStyle = '#0a0a0f';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                const barWidth = (canvas.width / bufferLength) * 2.5;
+                let x = 0;
+                
+                for (let i = 0; i < bufferLength; i++) {
+                    const barHeight = (dataArray[i] / 255) * canvas.height * 0.8;
+                    
+                    // Color based on frequency
+                    const hue = 170 + (i / bufferLength) * 30;
+                    ctx.fillStyle = `hsl(${hue}, 70%, 60%)`;
+                    
+                    ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                    x += barWidth + 1;
+                }
+            }
+            
+            draw();
+        }
+        
+        // Results
+        function showResults() {
+            const resultsPanel = document.getElementById('resultsPanel');
+            resultsPanel.classList.add('visible');
+            
+            document.getElementById('resultFreq').textContent = freqSlider.value + ' Hz';
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            document.getElementById('resultDuration').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+            
+            // Get questionnaire values
+            const getScaleValue = (name) => {
+                const checked = document.querySelector(`input[name="${name}"]:checked`);
+                return checked ? parseInt(checked.value) : 3;
+            };
+            
+            const clarity = getScaleValue('clarity');
+            const spatial = getScaleValue('spatial');
+            const time = getScaleValue('time');
+            const state = getScaleValue('state');
+            
+            document.getElementById('resultPost').textContent = ['', 'Alert', 'Calm', 'Neutral', 'Relaxed', 'Altered'][state];
+            document.getElementById('resultClarity').textContent = clarity + '/5';
+            document.getElementById('resultSpatial').textContent = spatial + '/5';
+            document.getElementById('resultTime').textContent = time + '/5';
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', startAudio);
+        stopBtn.addEventListener('click', stopAudio);
+        
+        // Save results (local storage for now)
+        document.getElementById('saveResults').addEventListener('click', () => {
+            const results = {
+                timestamp: new Date().toISOString(),
+                frequency: freqSlider.value,
+                duration: seconds,
+                clarity: document.querySelector('input[name="clarity"]:checked')?.value,
+                spatial: document.querySelector('input[name="spatial"]:checked')?.value,
+                time: document.querySelector('input[name="time"]:checked')?.value,
+                state: document.querySelector('input[name="state"]:checked')?.value
+            };
+            
+            // Save to localStorage
+            const sessions = JSON.parse(localStorage.getItem('hypogeum_sessions') || '[]');
+            sessions.push(results);
+            localStorage.setItem('hypogeum_sessions', JSON.stringify(sessions));
+            
+            alert('Session saved! Total sessions: ' + sessions.length);
+        });
+        
+        // Reset questionnaire
+        document.getElementById('resetAssessment').addEventListener('click', () => {
+            document.querySelectorAll('.scale input').forEach(input => {
+                input.checked = input.value === '3';
+            });
+        });
+        
+        // Draw static visualization when not playing
+        function drawStaticViz() {
+            ctx.fillStyle = '#0a0a0f';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            
+            // Draw frequency grid
+            for (let i = 0; i < canvas.width; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Draw 110 Hz marker
+            const markerX = (110 / 200) * canvas.width;
+            ctx.strokeStyle = '#64ffda';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(markerX, 0);
+            ctx.lineTo(markerX, canvas.height);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#64ffda';
+            ctx.font = '12px sans-serif';
+            ctx.fillText('110 Hz', markerX + 5, 20);
+        }
+        
+        drawStaticViz();
+    </script>
+</body>
+</html>
