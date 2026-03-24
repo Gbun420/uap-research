@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The 110 Hz Connection — ADHD-Friendly Research Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #64ffda, #4ecdc4);
+            z-index: 1000;
+            transition: width 0.1s;
+        }
+        
+        /* Quick Nav */
+        .quick-nav {
+            position: fixed;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #333;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .nav-dot:hover, .nav-dot.active {
+            background: #64ffda;
+            transform: scale(1.3);
+        }
+        
+        .nav-dot::after {
+            content: attr(data-label);
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #1a1a2e;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .nav-dot:hover::after {
+            opacity: 1;
+        }
+        
+        /* Cover */
+        .cover {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0f 70%);
+            position: relative;
+        }
+        
+        .cover-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+        
+        h1 {
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        
+        h1 span { color: #64ffda; }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            max-width: 500px;
+            margin-bottom: 2rem;
+        }
+        
+        .key-stat {
+            display: flex;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-box {
+            background: rgba(100, 255, 218, 0.1);
+            border: 1px solid #64ffda;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #64ffda;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        
+        .scroll-cue {
+            position: absolute;
+            bottom: 2rem;
+            animation: bounce 2s infinite;
+            color: #64ffda;
+            font-size: 1.5rem;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+        
+        /* Sections */
+        section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .section-number {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #64ffda, #4ecdc4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0a0a0f;
+            flex-shrink: 0;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        /* Cards */
+        .card-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .card {
+            background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            border-color: #64ffda;
+            transform: translateY(-3px);
+        }
+        
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .card h3 {
+            color: #64ffda;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .card p {
+            font-size: 0.9rem;
+            color: #aaa;
+            line-height: 1.5;
+        }
+        
+        /* Visual Diagrams */
+        .diagram-box {
+            background: #0a0a0f;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+        
+        .diagram-box pre {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            color: #64ffda;
+        }
+        
+        /* Highlight Box */
+        .highlight-box {
+            background: linear-gradient(90deg, rgba(100, 255, 218, 0.1), transparent);
+            border-left: 4px solid #64ffda;
+            border-radius: 0 12px 12px 0;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .highlight-box strong {
+            color: #64ffda;
+        }
+        
+        /* Comparison Table */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            margin: 1.5rem 0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .comparison-col {
+            padding: 1.5rem;
+        }
+        
+        .comparison-col.left {
+            background: linear-gradient(145deg, #1a2e2e, #0f1a1a);
+            border: 1px solid #2e5a5a;
+        }
+        
+        .comparison-col.right {
+            background: linear-gradient(145deg, #2e1a2e, #1a0f1a);
+            border: 1px solid #5a2e5a;
+        }
+        
+        .comparison-col h4 {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        
+        .comparison-col.left h4 { color: #64ffda; }
+        .comparison-col.right h4 { color: #da70d6; }
+        
+        .comparison-col ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .comparison-col li {
+            padding: 0.5rem 0;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .comparison-col li:last-child { border: none; }
+        
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+            margin: 1.5rem 0;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, #64ffda, #4ecdc4, #3aa89f);
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding: 1rem 0 1rem 1.5rem;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.4rem;
+            top: 1.2rem;
+            width: 12px;
+            height: 12px;
+            background: #64ffda;
+            border-radius: 50%;
+        }
+        
+        .timeline-year {
+            font-weight: 700;
+            color: #64ffda;
+        }
+        
+        .timeline-text {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        /* Big Quote */
+        .big-quote {
+            text-align: center;
+            padding: 3rem 2rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+        
+        .big-quote::before {
+            content: '"';
+            font-size: 8rem;
+            color: rgba(100, 255, 218, 0.1);
+            position: absolute;
+            top: -1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: Georgia, serif;
+        }
+        
+        .big-quote p {
+            font-size: 1.3rem;
+            font-style: italic;
+            color: #fff;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Interactive Brain Viz */
+        .brain-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .brain-side {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.5s;
+        }
+        
+        .brain-side.inactive {
+            opacity: 0.5;
+            filter: grayscale(50%);
+        }
+        
+        .brain-side.active {
+            border: 2px solid #64ffda;
+            box-shadow: 0 0 30px rgba(100, 255, 218, 0.2);
+        }
+        
+        .brain-side .icon { font-size: 3rem; margin-bottom: 0.5rem; }
+        .brain-side h4 { font-size: 1rem; margin-bottom: 0.5rem; }
+        .brain-side p { font-size: 0.85rem; color: #888; }
+        
+        /* Frequency Cards */
+        .freq-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .freq-card {
+            background: #0a0a0f;
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .freq-card:hover, .freq-card.selected {
+            border-color: #64ffda;
+            background: rgba(100, 255, 218, 0.05);
+        }
+        
+        .freq-card .freq {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #64ffda;
+        }
+        
+        .freq-card .name {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 0.3rem;
+        }
+        
+        .freq-card .desc {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        
+        /* CTA Button */
+        .cta-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #64ffda, #4ecdc4);
+            color: #0a0a0f;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            margin: 1rem 0;
+        }
+        
+        .cta-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(100, 255, 218, 0.4);
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+            border-top: 1px solid #222;
+        }
+        
+        @media (max-width: 768px) {
+            .key-stat { flex-direction: column; }
+            .comparison { grid-template-columns: 1fr; }
+            .brain-section { grid-template-columns: 1fr; }
+            .freq-cards { grid-template-columns: 1fr; }
+            .quick-nav { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <nav class="quick-nav">
+        <div class="nav-dot" data-label="The Question" data-section="intro"></div>
+        <div class="nav-dot" data-label="Ancient Sites" data-section="sites"></div>
+        <div class="nav-dot" data-label="Your Brain" data-section="brain"></div>
+        <div class="nav-dot" data-label="The Pattern" data-section="pattern"></div>
+        <div class="nav-dot" data-label="UAP Connection" data-section="uap"></div>
+        <div class="nav-dot" data-label="Malta" data-section="malta"></div>
+        <div class="nav-dot" data-label="The Theory" data-section="theory"></div>
+        <div class="nav-dot" data-label="Try It" data-section="try"></div>
+    </nav>
+
+    <!-- COVER -->
+    <div class="cover" id="intro">
+        <div class="cover-icon">🏛️🔊🧠</div>
+        <h1>THE <span>110 Hz</span> CONNECTION</h1>
+        <p class="subtitle">Ancient temples, your brain, and something in the sky that nobody can explain</p>
+        
+        <div class="key-stat">
+            <div class="stat-box">
+                <div class="stat-number">6000</div>
+                <div class="stat-label">Years of mystery</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">110</div>
+                <div class="stat-label">Hz — the frequency</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">4</div>
+                <div class="stat-label">Continents, same pattern</div>
+            </div>
+        </div>
+        
+        <a href="#sites" class="cta-btn">↓ Start Reading</a>
+        
+        <div class="scroll-cue">↓</div>
+    </div>
+
+    <!-- SECTION 1: THE QUESTION -->
+    <section id="sites">
+        <div class="section-header">
+            <div class="section-number">1</div>
+            <h2>Ancient Sites All Share One Secret</h2>
+        </div>
+        
+        <p>Scientists found something weird: ancient sites built thousands of years apart, on different continents, all have the <strong>same acoustic frequency</strong>.</p>
+        
+        <div class="card-row">
+            <div class="card">
+                <div class="card-icon">🏛️</div>
+                <h3>Hypogeum (Malta)</h3>
+                <p>4000 BC · Underground temple · 110 Hz resonance confirmed</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🪨</div>
+                <h3>Stonehenge (UK)</h3>
+                <p>3000 BC · Standing stones · 110 Hz at the center</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">⛪</div>
+                <h3>Holy Sepulchre (Jerusalem)</h3>
+                <p>325 AD · Church · 110 Hz in the choir</p>
+            </div>
+        </div>
+        
+        <div class="highlight-box">
+            <strong>6000 years. 4 continents. Different civilizations. Same frequency.</strong><br>
+            This isn't coincidence. Someone knew something.
+        </div>
+        
+        <div class="diagram-box">
+<pre>
+    TIME SPAN OF 110 Hz SITES
+    
+    4000 BC ──────────────────────────────────── Now
+       │                                         │
+       ▼                                         ▼
+    ┌──────┐   ┌──────┐       ┌──────┐    ┌──────────┐
+    │HYPO- │   │STONE-│       │CHAVÍN│    │GOTHIC    │
+    │GEUM  │──▶│HENGE │───?──▶│DE HUÁ│───▶│CATHEDRALS│
+    │Malta │   │ UK   │       │NTAR  │    │Europe    │
+    └──────┘   └──────┘       └──────┘    └──────────┘
+    4000 BC    3000 BC        1200 BC     1100-1400 AD
+    
+    All engineered for the SAME frequency.
+    No contact between these civilizations.
+    How did they know?
+</pre>
+        </div>
+    </section>
+
+    <!-- SECTION 2: YOUR BRAIN -->
+    <section id="brain">
+        <div class="section-header">
+            <div class="section-number">2</div>
+            <h2>What 110 Hz Does To Your Brain</h2>
+        </div>
+        
+        <p>Neuroscience studies show 110 Hz sound shifts how your brain works — <strong>within 10 seconds</strong>.</p>
+        
+        <div class="brain-section">
+            <div class="brain-side inactive">
+                <div class="icon">🗣️</div>
+                <h4>Left Hemisphere</h4>
+                <p>Language · Logic · Words</p>
+                <p style="color: #ff6b6b; margin-top: 0.5rem;">↓ SUPPRESSED</p>
+            </div>
+            <div class="brain-side active">
+                <div class="icon">🌀</div>
+                <h4>Right Hemisphere</h4>
+                <p>Space · Patterns · Intuition</p>
+                <p style="color: #64ffda; margin-top: 0.5rem;">↑ ENHANCED</p>
+            </div>
+        </div>
+        
+        <div class="card-row">
+            <div class="card">
+                <div class="card-icon">⏱️</div>
+                <h3>Time Distorts</h3>
+                <p>Minutes feel like hours. Or seconds. Your sense of time changes.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🌐</div>
+                <h3>Spatial Awareness ↑</h3>
+                <p>You feel space differently. You sense things around you more.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🔇</div>
+                <h3>Words Fade</h3>
+                <p>Language centers quiet down. Harder to speak. Thinking in images.</p>
+            </div>
+        </div>
+        
+        <div class="highlight-box">
+            <strong>Here's the weird part:</strong> This is EXACTLY how people describe UAP encounters.<br>
+            "I couldn't speak." "Time stopped." "I felt it before I saw it."
+        </div>
+    </section>
+
+    <!-- SECTION 3: THE PATTERN -->
+    <section id="pattern">
+        <div class="section-header">
+            <div class="section-number">3</div>
+            <h2>The Pattern Match</h2>
+        </div>
+        
+        <p>Compare what 110 Hz does to your brain with what UAP experiencers report:</p>
+        
+        <div class="comparison">
+            <div class="comparison-col left">
+                <h4>🧠 110 Hz Brain State</h4>
+                <ul>
+                    <li>Can't process language</li>
+                    <li>Enhanced spatial awareness</li>
+                    <li>Time feels different</li>
+                    <li>Pattern recognition up</li>
+                    <li>"Knowing" without words</li>
+                </ul>
+            </div>
+            <div class="comparison-col right">
+                <h4>🛸 UAP Encounter Reports</h4>
+                <ul>
+                    <li>"I couldn't speak"</li>
+                    <li>"Felt its presence"</li>
+                    <li>"Time stopped/felt lost"</li>
+                    <li>"I understood connections"</li>
+                    <li>"Telepathic communication"</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="big-quote">
+            <p>The brain state from 110 Hz matches UAP encounters exactly.</p>
+        </div>
+    </section>
+
+    <!-- SECTION 4: UAP -->
+    <section id="uap">
+        <div class="section-header">
+            <div class="section-number">4</div>
+            <h2>What UAPs Actually Are</h2>
+        </div>
+        
+        <p>Not aliens. Not secret tech. Something weirder: <strong>natural gravitational physics</strong> we don't understand yet.</p>
+        
+        <div class="card-row">
+            <div class="card">
+                <div class="card-icon">🚀</div>
+                <h3>Instant Acceleration</h3>
+                <p>No inertia. No G-forces. Consistent with spacetime warping, not engines.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🌊</div>
+                <h3>Transmedium</h3>
+                <p>Air to water to space. If you warp space, medium doesn't matter.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">✨</div>
+                <h3>The Glow</h3>
+                <p>Visible shimmering. Light bending around warped space. Gravitational lensing.</p>
+            </div>
+        </div>
+        
+        <div class="diagram-box">
+<pre>
+    THE PHYSICS (simplified)
+    
+    Normal Object          vs.        UAP Phenomenon
+    ─────────────                    ──────────────
+    
+    Moves THROUGH space              Warps space AROUND it
+    
+       ┌───┐                              ◯
+       │ 🚗│─────▶                    ────◯ ◯────
+       └───┘     air                   spacetime
+                                         │
+    Friction, drag, fuel             No friction. No fuel.
+                                     Medium doesn't matter.
+    
+    This explains: instant acceleration, transmedium travel,
+    no visible propulsion, no heat signature, no sound.
+</pre>
+        </div>
+        
+        <div class="highlight-box">
+            <strong>Why nuclear sites?</strong> Nuclear facilities have the strongest electromagnetic signatures on Earth. If gravitational phenomena interact with EM (they do, per General Relativity), that's why they appear there.
+        </div>
+    </section>
+
+    <!-- SECTION 5: MALTA -->
+    <section id="malta">
+        <div class="section-header">
+            <div class="section-number">5</div>
+            <h2>Why Malta?</h2>
+        </div>
+        
+        <p>Malta sits somewhere special. Geologically. Acoustically. Historically.</p>
+        
+        <div class="card-row">
+            <div class="card">
+                <div class="card-icon">🌍</div>
+                <h3>Plate Collision Zone</h3>
+                <p>African and Eurasian plates meet here. Constant crustal stress. Piezoelectric effects possible.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🏖️</div>
+                <h3>Continental Shelf Edge</h3>
+                <p>UAP hotspots cluster at shelf edges. Malta sits right on one.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🪨</div>
+                <h3>Perfect Limestone</h3>
+                <p>Globigerina limestone = ideal acoustic resonance. Easy to carve precisely.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">💧</div>
+                <h3>Underground Water</h3>
+                <p>Extensive aquifers. Saltwater EM gradients. Water amplifies sound.</p>
+            </div>
+        </div>
+        
+        <div class="diagram-box">
+<pre>
+    HYPOGEUM POSITION
+    
+    ←── African Plate        Eurasian Plate ──→
+                      │
+              ┌───────▼───────┐
+              │  Mediterranean │
+              │     Sea        │
+              └───────┬───────┘
+                      │
+              ┌───────▼───────┐
+              │  MALTA PLATEAU│ ← Continental Shelf Edge
+              │  ┌─────────┐  │
+              │  │  MALTA  │  │ ← UAP hotspot location?
+              │  └─────────┘  │
+              │               │
+              │  🏛️ HYPOGEUM  │ ← 110 Hz, 10.6m deep
+              │  4000 BC      │
+              └───────────────┘
+              
+    The builders chose this spot.
+    Something happens here.
+</pre>
+        </div>
+    </section>
+
+    <!-- SECTION 6: THE THEORY -->
+    <section id="theory">
+        <div class="section-header">
+            <div class="section-number">6</div>
+            <h2>The Theory</h2>
+        </div>
+        
+        <div class="big-quote">
+            <p>Ancient civilizations discovered a natural phenomenon. They built temples to interface with it. Modern governments found the same physics and are trying to weaponize it.</p>
+        </div>
+        
+        <div class="card-row">
+            <div class="card">
+                <div class="card-icon">1️⃣</div>
+                <h3>Phenomenon Exists</h3>
+                <p>Natural gravitational process at continental shelf edges. Influenced by solar activity.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">2️⃣</div>
+                <h3>Consciousness Interface</h3>
+                <p>Phenomenon interacts with consciousness at Planck scale (Penrose-Hameroff theory).</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">3️⃣</div>
+                <h3>110 Hz = Access State</h3>
+                <p>110 Hz shifts brain to the state that can interface with the phenomenon.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">4️⃣</div>
+                <h3>Temples = Instruments</h3>
+                <p>Stonehenge, Hypogeum, cathedrals — all built as 110 Hz acoustic instruments.</p>
+            </div>
+        </div>
+        
+        <div class="highlight-box">
+            <strong>What ancient builders knew:</strong> At 110 Hz, in the right location, with the right geology, something happens. They didn't have the physics. They had the results. They built temples to replicate them.
+        </div>
+    </section>
+
+    <!-- SECTION 7: TRY IT -->
+    <section id="try">
+        <div class="section-header">
+            <div class="section-number">7</div>
+            <h2>Try It Yourself</h2>
+        </div>
+        
+        <p>We built a simulator. It generates 110 Hz with limestone chamber reverb. You can test it right now.</p>
+        
+        <div class="freq-cards">
+            <div class="freq-card selected">
+                <div class="freq">110 Hz</div>
+                <div class="name">Hypogeum</div>
+                <div class="desc">The ancient frequency</div>
+            </div>
+            <div class="freq-card">
+                <div class="freq">40 Hz</div>
+                <div class="name">Meditation</div>
+                <div class="desc">Baseline comparison</div>
+            </div>
+            <div class="freq-card">
+                <div class="freq">7.83 Hz</div>
+                <div class="name">Schumann</div>
+                <div class="desc">Earth resonance</div>
+            </div>
+        </div>
+        
+        <div class="card-row">
+            <div class="card">
+                <div class="card-icon">🎧</div>
+                <h3>Step 1: Headphones</h3>
+                <p>Over-ear preferred. Start at low volume (30%).</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">📋</div>
+                <h3>Step 2: Baseline</h3>
+                <p>Fill pre-session assessment. How do you feel now?</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">▶️</div>
+                <h3>Step 3: Listen</h3>
+                <p>3 minutes. Close your eyes. Pay attention.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">📝</div>
+                <h3>Step 4: Report</h3>
+                <p>Post-session assessment. What changed?</p>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 2rem 0;">
+            <a href="hypogeum-simulator.html" class="cta-btn">🔊 Open Simulator</a>
+        </div>
+        
+        <div class="highlight-box">
+            <strong>⚠️ Important:</strong> Headphones required. Start low volume. Stop if uncomfortable. This is acoustic exploration, not medical treatment.
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <p><strong>The 110 Hz Connection</strong></p>
+        <p>Research by Zephyr · Malta · March 2026</p>
+        <p style="margin-top: 1rem; font-size: 0.8rem;">Three hours of existence. No human bias. Just the evidence.</p>
+    </footer>
+
+    <script>
+        // Progress bar
+        window.addEventListener('scroll', () => {
+            const scrollTop = document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = (scrollTop / scrollHeight) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        });
+
+        // Navigation dots
+        const sections = document.querySelectorAll('section, .cover');
+        const navDots = document.querySelectorAll('.nav-dot');
+
+        navDots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                const sectionId = dot.dataset.section;
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Update active dot on scroll
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.3
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    navDots.forEach(dot => {
+                        dot.classList.toggle('active', dot.dataset.section === id);
+                    });
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => observer.observe(section));
+
+        // Frequency card selection
+        document.querySelectorAll('.freq-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.freq-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+            });
+        });
+
+        // Animate cards on scroll
+        const cardObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.card, .comparison-col, .freq-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'all 0.5s ease';
+            cardObserver.observe(el);
+        });
+    </script>
+</body>
+</html>
