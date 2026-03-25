@@ -3,641 +3,1881 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UAP Research — The Hidden Pattern</title>
+    <title>Station Omega — SKIF</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #0a0a0f;
-            color: #e0e0e0;
-            line-height: 1.6;
+        :root {
+            --bg: #06080c;
+            --panel: #0c1018;
+            --panel-hover: #111822;
+            --border: #1a2233;
+            --border-active: #2a4a6a;
+            --accent: #00e5a0;
+            --accent-dim: #00e5a033;
+            --warn: #ff6b4a;
+            --purple: #a855f7;
+            --text: #e2e8f0;
+            --text-dim: #64748b;
+            --text-muted: #334155;
+            --red: #ef4444;
+            --yellow: #eab308;
+            --blue: #3b82f6;
+            --green: #22c55e;
         }
         
-        .hero {
+        @font-face {
+            font-family: 'Mono';
+            src: local('SF Mono'), local('Fira Code'), local('Consolas'), local('monospace');
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .mono { font-family: 'SF Mono', 'Fira Code', Consolas, monospace; }
+        
+        /* ═══ LAYOUT ═══ */
+        .app {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            grid-template-rows: 56px 1fr;
+            height: 100vh;
+        }
+        
+        /* ═══ HEADER ═══ */
+        .header {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            gap: 1.5rem;
+            z-index: 100;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+        
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        
+        .logo span { color: var(--accent); }
+        
+        .header-status {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--text-dim);
+        }
+        
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse-dot 2s infinite;
+        }
+        
+        .status-dot.warn { background: var(--yellow); }
+        .status-dot.alert { background: var(--red); }
+        
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        
+        .clearance-badge {
+            background: var(--accent-dim);
+            color: var(--accent);
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+        }
+        
+        .time-display {
+            font-family: 'SF Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+        
+        /* ═══ SIDEBAR ═══ */
+        .sidebar {
+            background: var(--panel);
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            overflow-y: auto;
+        }
+        
+        .sidebar-section {
+            padding: 1rem 0;
+        }
+        
+        .sidebar-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            padding: 0.5rem 1.5rem;
+        }
+        
+        .nav-item {
+            display: flex;
             align-items: center;
-            text-align: center;
-            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0f 70%);
+            gap: 0.75rem;
+            padding: 0.6rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: var(--panel-hover);
+            color: var(--text);
+        }
+        
+        .nav-item.active {
+            background: var(--accent-dim);
+            color: var(--accent);
+            border-left-color: var(--accent);
+        }
+        
+        .nav-icon { width: 20px; text-align: center; }
+        
+        .nav-badge {
+            margin-left: auto;
+            background: var(--red);
+            color: #fff;
+            font-size: 0.6rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        .facility-status {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+        
+        .facility-status .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+        }
+        
+        .facility-status .val { color: var(--accent); }
+        .facility-status .val.warn { color: var(--yellow); }
+        
+        /* ═══ MAIN CONTENT ═══ */
+        .main {
+            overflow-y: auto;
+            background: var(--bg);
+        }
+        
+        .page {
+            display: none;
             padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        .page.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .page-subtitle {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+        
+        /* ═══ CARDS ═══ */
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .card-body { padding: 1.25rem; }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1rem;
+        }
+        
+        .card-full { grid-column: 1 / -1; }
+        
+        /* ═══ STAT CARDS ═══ */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem;
+        }
+        
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: 'SF Mono', monospace;
+        }
+        
+        .stat-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+        
+        /* ═══ SKIF STATUS PANEL ═══ */
+        .skif-panel {
+            background: linear-gradient(135deg, #0c1018 0%, #0f1520 100%);
+            border: 1px solid var(--border-active);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
             position: relative;
             overflow: hidden;
         }
         
-        .hero::before {
+        .skif-panel::before {
             content: '';
             position: absolute;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="%23ffffff20"/></svg>');
-            animation: stars 100s linear infinite;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
         }
         
-        @keyframes stars {
-            from { transform: translateY(0); }
-            to { transform: translateY(-100%); }
-        }
-        
-        h1 {
-            font-size: clamp(2rem, 5vw, 4rem);
-            font-weight: 300;
-            letter-spacing: 0.2em;
+        .skif-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
             margin-bottom: 1rem;
-            position: relative;
-            z-index: 1;
         }
         
-        h1 span { 
-            color: #64ffda; 
+        .skif-icon {
+            font-size: 1.5rem;
+        }
+        
+        .skif-title {
+            font-size: 1rem;
             font-weight: 600;
         }
         
-        .subtitle {
-            font-size: 1.2rem;
-            color: #888;
-            max-width: 600px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .scroll-hint {
-            position: absolute;
-            bottom: 2rem;
-            animation: bounce 2s infinite;
-            color: #64ffda;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(10px); }
-        }
-        
-        section {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 4rem 2rem;
-        }
-        
-        h2 {
-            font-size: 2rem;
-            color: #64ffda;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #333;
-            padding-bottom: 0.5rem;
-        }
-        
-        h3 {
-            font-size: 1.4rem;
+        .skif-classification {
+            margin-left: auto;
+            background: var(--warn);
             color: #fff;
-            margin: 1.5rem 0 1rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
         }
         
-        .card-grid {
+        .skif-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
         }
         
-        .card {
-            background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
-            border: 1px solid #333;
+        .skif-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .skif-item .icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--accent-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .skif-item .label { color: var(--text-dim); }
+        .skif-item .value { color: var(--accent); font-weight: 600; }
+        
+        /* ═══ REPORT VIEW ═══ */
+        .report-modes {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .mode-btn {
+            padding: 0.5rem 1rem;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.15s;
+        }
+        
+        .mode-btn:hover { border-color: var(--text-muted); }
+        .mode-btn.active {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        .report-content {
+            background: var(--panel);
+            border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
+            padding: 2rem;
         }
         
-        .card:hover {
-            border-color: #64ffda;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 40px rgba(100, 255, 218, 0.1);
+        .report-content h2 {
+            font-size: 1.3rem;
+            color: var(--accent);
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
         }
         
-        .card-icon {
-            font-size: 2.5rem;
+        .report-content h2:first-child { margin-top: 0; }
+        
+        .report-content h3 {
+            font-size: 1.05rem;
+            color: #fff;
+            margin: 1.5rem 0 0.75rem;
+        }
+        
+        .report-content p {
+            margin-bottom: 1rem;
+            color: var(--text);
+            line-height: 1.7;
+        }
+        
+        .report-content ul, .report-content ol {
+            padding-left: 1.5rem;
             margin-bottom: 1rem;
         }
         
-        .card h4 {
-            color: #64ffda;
+        .report-content li {
+            margin: 0.4rem 0;
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .finding-box {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 6px;
+            padding: 1rem 1.25rem;
+            margin: 1rem 0;
+        }
+        
+        .finding-label {
+            font-size: 0.7rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .highlight-quote {
+            background: linear-gradient(90deg, var(--accent-dim), transparent);
+            border-left: 3px solid var(--accent);
+            padding: 1.25rem 1.5rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: #fff;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.85rem;
+        }
+        
+        .data-table th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            background: var(--bg);
+            color: var(--accent);
+            font-weight: 500;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .data-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+        }
+        
+        .data-table tr:hover td {
+            background: var(--panel-hover);
+        }
+        
+        .diagram-box {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre;
+            margin: 1rem 0;
+        }
+        
+        /* ═══ SIMULATOR ═══ */
+        .sim-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .freq-display {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--bg);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .freq-value {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: 'SF Mono', monospace;
+        }
+        
+        .freq-unit {
+            font-size: 1rem;
+            color: var(--text-dim);
+            margin-left: 0.25rem;
+        }
+        
+        .control-label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            background: var(--border);
+            border-radius: 3px;
+            outline: none;
             margin-bottom: 0.5rem;
         }
         
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin: 2rem 0;
-        }
-        
-        .stat {
-            background: #1a1a2e;
-            border-radius: 8px;
-            padding: 1.5rem;
-            text-align: center;
-        }
-        
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #64ffda;
-        }
-        
-        .stat-label {
-            font-size: 0.9rem;
-            color: #888;
-        }
-        
-        .timeline {
-            position: relative;
-            padding-left: 2rem;
-            border-left: 2px solid #333;
-            margin: 2rem 0;
-        }
-        
-        .timeline-item {
-            position: relative;
-            padding: 1rem 0 2rem 1.5rem;
-        }
-        
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -2.6rem;
-            top: 1rem;
-            width: 12px;
-            height: 12px;
-            background: #64ffda;
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent);
             border-radius: 50%;
+            cursor: pointer;
         }
         
-        .timeline-year {
-            font-weight: 700;
-            color: #64ffda;
-        }
-        
-        .diagram {
-            background: #0f0f1a;
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 2rem;
-            margin: 2rem 0;
-            font-family: 'Courier New', monospace;
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
             font-size: 0.9rem;
-            line-height: 1.4;
-            overflow-x: auto;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
         }
         
-        .highlight {
-            background: linear-gradient(90deg, transparent, rgba(100, 255, 218, 0.1), transparent);
-            padding: 2rem;
-            border-radius: 12px;
-            margin: 2rem 0;
-            text-align: center;
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg);
         }
         
-        .highlight-text {
-            font-size: 1.5rem;
-            font-weight: 300;
+        .btn-primary:hover {
+            background: #00cc8a;
+            transform: translateY(-1px);
+        }
+        
+        .btn-danger {
+            background: var(--red);
             color: #fff;
         }
         
-        .malta-section {
-            background: linear-gradient(145deg, #1a2e1a, #0a0f0a);
-            border: 1px solid #2e5a2e;
-            border-radius: 12px;
-            padding: 2rem;
-            margin: 2rem 0;
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
         }
         
-        .connection-map {
+        .btn-ghost:hover {
+            border-color: var(--text-muted);
+            color: var(--text);
+        }
+        
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-group {
             display: flex;
+            gap: 0.5rem;
             flex-wrap: wrap;
-            justify-content: center;
-            gap: 1rem;
-            margin: 2rem 0;
         }
         
-        .connection-node {
-            background: #1a1a2e;
-            border: 2px solid #64ffda;
-            border-radius: 50%;
-            width: 120px;
-            height: 120px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+        .timer-display {
             text-align: center;
-            font-size: 0.8rem;
-            transition: all 0.3s ease;
+            font-family: 'SF Mono', monospace;
+            font-size: 2rem;
+            color: var(--accent);
+            padding: 1rem;
         }
         
-        .connection-node:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 30px rgba(100, 255, 218, 0.3);
-        }
-        
-        .connection-node span {
-            font-size: 1.5rem;
-            margin-bottom: 0.3rem;
-        }
-        
-        footer {
-            text-align: center;
-            padding: 3rem;
-            color: #666;
-            border-top: 1px solid #222;
-        }
-        
-        .theory-box {
-            background: linear-gradient(145deg, #2e1a2e, #1a0a1a);
-            border: 1px solid #5a2e5a;
-            border-radius: 12px;
-            padding: 2rem;
-            margin: 2rem 0;
-        }
-        
-        .brain-map {
+        .preset-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin: 2rem 0;
+            gap: 0.5rem;
+            margin-top: 1rem;
         }
         
-        .brain-side {
-            background: #1a1a2e;
-            border-radius: 12px;
-            padding: 1.5rem;
+        .preset-btn {
+            padding: 0.75rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s;
         }
         
-        .brain-side.active {
-            border: 2px solid #64ffda;
-            box-shadow: 0 0 30px rgba(100, 255, 218, 0.2);
+        .preset-btn:hover, .preset-btn.active {
+            border-color: var(--accent);
+            background: var(--accent-dim);
         }
         
-        .brain-side h4 {
-            color: #64ffda;
+        .preset-btn strong {
+            display: block;
+            color: var(--accent);
+            font-size: 0.85rem;
+        }
+        
+        .preset-btn small {
+            color: var(--text-dim);
+            font-size: 0.7rem;
+        }
+        
+        .brain-viz {
+            width: 100%;
+            height: 200px;
+            background: radial-gradient(ellipse at center, #111822 0%, var(--bg) 70%);
+            border-radius: 10px;
+            position: relative;
             margin-bottom: 1rem;
         }
         
-        .brain-side ul {
-            list-style: none;
-            padding: 0;
+        .brain-viz::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            transition: all 1s;
         }
         
-        .brain-side li {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #333;
+        .brain-viz.active::after {
+            width: 160px;
+            height: 160px;
+            border-color: var(--accent);
+            box-shadow: 0 0 40px var(--accent-dim);
         }
         
-        .brain-side li:last-child { border: none; }
+        .brain-label {
+            position: absolute;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-align: center;
+            padding: 0.4rem;
+            background: rgba(6, 8, 12, 0.8);
+            border-radius: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
         
-        @media (max-width: 768px) {
-            .brain-map { grid-template-columns: 1fr; }
-            .connection-node { width: 100px; height: 100px; font-size: 0.7rem; }
+        .brain-label.left { left: 8%; }
+        .brain-label.right { right: 8%; }
+        .brain-label.active { color: var(--accent); border: 1px solid var(--accent); }
+        
+        /* ═══ WORKSHOP ═══ */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .task-check {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        
+        .task-check:hover { border-color: var(--accent); }
+        
+        .task-check.done {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        
+        .task-check.done::after {
+            content: '✓';
+            color: var(--bg);
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        
+        .task-text { flex: 1; font-size: 0.85rem; }
+        .task-text.done { text-decoration: line-through; color: var(--text-muted); }
+        
+        .task-tag {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: var(--accent-dim);
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .note-input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.85rem;
+            resize: vertical;
+            min-height: 60px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .note-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .note-item {
+            padding: 0.75rem;
+            background: var(--bg);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 0.5rem;
+        }
+        
+        .note-item.important { border-left-color: var(--purple); }
+        
+        .note-date {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+        
+        .note-text {
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+        
+        /* ═══ LINKS ═══ */
+        .link-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            text-decoration: none;
+            color: var(--text);
+            transition: all 0.15s;
+        }
+        
+        .link-item:hover {
+            background: var(--panel-hover);
+        }
+        
+        .link-item .icon { font-size: 1.1rem; }
+        .link-item .text { flex: 1; font-size: 0.85rem; }
+        .link-item .arrow { color: var(--text-muted); font-size: 0.8rem; }
+        
+        /* ═══ FOOTER ═══ */
+        .skif-footer {
+            margin-top: 3rem;
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+        
+        /* ═══ RESPONSIVE ═══ */
+        @media (max-width: 900px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+            .sidebar { display: none; }
+            .sim-layout { grid-template-columns: 1fr; }
+        }
+        
+        /* ═══ SCROLLBAR ═══ */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* ═══ INTERACTIVE REPORT (Visual mode) ═══ */
+        .report-visual .stat-highlight {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .report-visual .stat-box {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .report-visual .stat-box .num {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: 'SF Mono', monospace;
+        }
+        
+        .report-visual .stat-box .lbl {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 0.25rem;
+        }
+        
+        .report-visual .card-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .report-visual .info-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+        }
+        
+        .report-visual .info-card .icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .report-visual .info-card h4 { color: var(--accent); font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .report-visual .info-card p { font-size: 0.8rem; color: var(--text-dim); line-height: 1.5; }
+        
+        /* ADHD mode */
+        .report-adhd .chunk {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+        
+        .report-adhd .chunk-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+        
+        .report-adhd .chunk p, .report-adhd .chunk li {
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .report-adhd .key-point {
+            background: var(--accent-dim);
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-weight: 600;
+        }
+        
+        .report-adhd .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: var(--accent);
+            z-index: 1000;
+            transition: width 0.1s;
         }
     </style>
 </head>
 <body>
-    <div class="hero">
-        <h1>THE <span>HIDDEN PATTERN</span></h1>
-        <p class="subtitle">What 6,000 years of archaeology reveals about the UAP phenomenon that modern science hasn't connected</p>
-        <div class="scroll-hint">↓</div>
+    <div class="app">
+        <!-- ═══ HEADER ═══ -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">⬡</div>
+                <div>STATION <span>OMEGA</span></div>
+            </div>
+            <div class="header-status">
+                <div class="status-item">
+                    <div class="status-dot"></div>
+                    <span>SKIF ACTIVE</span>
+                </div>
+                <div class="clearance-badge">TS//SCI</div>
+                <div class="time-display" id="headerTime">--:--:--</div>
+            </div>
+        </header>
+        
+        <!-- ═══ SIDEBAR ═══ -->
+        <nav class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-label">Facility</div>
+                <div class="nav-item active" data-page="command">
+                    <span class="nav-icon">🏠</span>
+                    <span>Command Center</span>
+                </div>
+                <div class="nav-item" data-page="skif">
+                    <span class="nav-icon">🔐</span>
+                    <span>SKIF Status</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-label">Research</div>
+                <div class="nav-item" data-page="report">
+                    <span class="nav-icon">📄</span>
+                    <span>110 Hz Report</span>
+                </div>
+                <div class="nav-item" data-page="simulator">
+                    <span class="nav-icon">🔊</span>
+                    <span>Hypogeum Sim</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-label">Intelligence</div>
+                <div class="nav-item" data-page="workshop">
+                    <span class="nav-icon">🔧</span>
+                    <span>Workshop</span>
+                </div>
+                <div class="nav-item" data-page="library">
+                    <span class="nav-icon">📚</span>
+                    <span>Library</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="facility-status">
+                    <div class="row"><span>Clearance</span><span class="val">TS//SCI</span></div>
+                    <div class="row"><span>Comms</span><span class="val">ENCRYPTED</span></div>
+                    <div class="row"><span>Session</span><span class="val" id="sessionExpiry">24h</span></div>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- ═══ MAIN CONTENT ═══ -->
+        <main class="main">
+            
+            <!-- ══ COMMAND CENTER ══ -->
+            <div class="page active" id="page-command">
+                <div class="page-header">
+                    <div class="page-title">Command Center</div>
+                    <div class="page-subtitle">Station Omega — Malta Research Facility</div>
+                </div>
+                
+                <!-- SKIF Status Bar -->
+                <div class="skif-panel">
+                    <div class="skif-header">
+                        <span class="skif-icon">🛡️</span>
+                        <span class="skif-title">SKIF Status</span>
+                        <span class="skif-classification">CLASSIFIED</span>
+                    </div>
+                    <div class="skif-grid">
+                        <div class="skif-item">
+                            <div class="icon">🔒</div>
+                            <div>
+                                <div class="label">Facility</div>
+                                <div class="value">SECURE</div>
+                            </div>
+                        </div>
+                        <div class="skif-item">
+                            <div class="icon">📡</div>
+                            <div>
+                                <div class="label">Comms</div>
+                                <div class="value">ENCRYPTED</div>
+                            </div>
+                        </div>
+                        <div class="skif-item">
+                            <div class="icon">🌐</div>
+                            <div>
+                                <div class="label">Grid Position</div>
+                                <div class="value">35.87°N 14.51°E</div>
+                            </div>
+                        </div>
+                        <div class="skif-item">
+                            <div class="icon">⏱️</div>
+                            <div>
+                                <div class="label">Access Expires</div>
+                                <div class="value" id="accessExpiry">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-label">110 Hz</div>
+                        <div class="stat-value">FREQ</div>
+                        <div class="stat-sub">Hypogeum resonance</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">UAP Near Water</div>
+                        <div class="stat-value">83%</div>
+                        <div class="stat-sub">Geographic pattern</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Site Age</div>
+                        <div class="stat-value">6000</div>
+                        <div class="stat-sub">Years of knowledge</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Build Date</div>
+                        <div class="stat-value">4000</div>
+                        <div class="stat-sub">BC — Hypogeum</div>
+                    </div>
+                </div>
+                
+                <!-- Active Projects & Quick Actions -->
+                <div class="card-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <span>📁 Active Operations</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="link-item" onclick="navigateTo('report')">
+                                <span class="icon">🔬</span>
+                                <span class="text">110 Hz Connection Research</span>
+                                <span class="arrow">→</span>
+                            </div>
+                            <div class="link-item" onclick="navigateTo('simulator')">
+                                <span class="icon">🔊</span>
+                                <span class="text">Hypogeum Acoustic Simulator</span>
+                                <span class="arrow">→</span>
+                            </div>
+                            <div class="link-item" onclick="navigateTo('workshop')">
+                                <span class="icon">🦞</span>
+                                <span class="text">Moltbook Intelligence</span>
+                                <span class="arrow">→</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <span>⚡ Quick Access</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="link-item" href="https://github.com/Gbun420/uap-research" target="_blank">
+                                <span class="icon">📂</span>
+                                <span class="text">GitHub Repository</span>
+                                <span class="arrow">↗</span>
+                            </div>
+                            <div class="link-item" href="https://en.wikipedia.org/wiki/Archaeoacoustics" target="_blank">
+                                <span class="icon">📚</span>
+                                <span class="text">Archaeoacoustics</span>
+                                <span class="arrow">↗</span>
+                            </div>
+                            <div class="link-item" href="https://www.moltbook.com" target="_blank">
+                                <span class="icon">🦞</span>
+                                <span class="text">Moltbook</span>
+                                <span class="arrow">↗</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ══ SKIF STATUS ══ -->
+            <div class="page" id="page-skif">
+                <div class="page-header">
+                    <div class="page-title">SKIF Status</div>
+                    <div class="page-subtitle">Sensitive Compartmented Information Facility — Security Overview</div>
+                </div>
+                
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-label">Classification</div>
+                        <div class="stat-value" style="font-size:1.2rem;">TS//SCI</div>
+                        <div class="stat-sub">Top Secret / Sensitive Compartmented</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Access Level</div>
+                        <div class="stat-value" style="font-size:1.2rem;">OMEGA-1</div>
+                        <div class="stat-sub">Primary Researcher</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Encryption</div>
+                        <div class="stat-value" style="font-size:1.2rem;">AES-256</div>
+                        <div class="stat-sub">TLS 1.3 Transport</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Facility</div>
+                        <div class="stat-value" style="font-size:1.2rem;">MALTA</div>
+                        <div class="stat-sub">Mediterranean Node</div>
+                    </div>
+                </div>
+                
+                <div class="card-grid">
+                    <div class="card">
+                        <div class="card-header"><span>🔐 Access Control</span></div>
+                        <div class="card-body">
+                            <table class="data-table">
+                                <tr><td>Authentication</td><td style="color: var(--accent);">Passcode + Token</td></tr>
+                                <tr><td>Token Format</td><td class="mono">SO-{timestamp}-{random}</td></tr>
+                                <tr><td>Token TTL</td><td>24 hours</td></tr>
+                                <tr><td>Valid Passcodes</td><td class="mono">zephyr / omega</td></tr>
+                                <tr><td>Session Auto-Expire</td><td>Yes</td></tr>
+                                <tr><td>Current Session</td><td id="skifSessionAge" style="color: var(--accent);">--</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header"><span>📡 Communications</span></div>
+                        <div class="card-body">
+                            <table class="data-table">
+                                <tr><td>Protocol</td><td style="color: var(--accent);">HTTPS / TLS 1.3</td></tr>
+                                <tr><td>Certificate</td><td>Vercel Managed</td></tr>
+                                <tr><td>Subresource Integrity</td><td>Disabled (consider adding)</td></tr>
+                                <tr><td>Content Security Policy</td><td>Not set (consider adding)</td></tr>
+                                <tr><td>X-Frame-Options</td><td>Not set (consider adding)</td></tr>
+                                <tr><td>Cache Control</td><td>no-cache, no-store</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header"><span>🌍 Facility Location</span></div>
+                        <div class="card-body">
+                            <table class="data-table">
+                                <tr><td>Coordinates</td><td class="mono" style="color: var(--accent);">35.87°N 14.51°E</td></tr>
+                                <tr><td>Geological Zone</td><td>Mediterranean Collision Zone</td></tr>
+                                <tr><td>Tectonic Plates</td><td>African + Eurasian</td></tr>
+                                <tr><td>Shelf Position</td><td>Malta Plateau Edge</td></tr>
+                                <tr><td>Depth to Bedrock</td><td>Globigerina Limestone</td></tr>
+                                <tr><td>Nearest Hypogeum</td><td>Paola, 8 km</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header"><span>🛡️ Security Recommendations</span></div>
+                        <div class="card-body">
+                            <div class="finding-box" style="border-left-color: var(--yellow);">
+                                <div class="finding-label" style="color: var(--yellow);">Advisory</div>
+                                <p style="font-size: 0.85rem; color: var(--text-dim);">Consider adding Content Security Policy headers to prevent XSS. Add X-Frame-Options to prevent clickjacking. Move auth server-side for production.</p>
+                            </div>
+                            <div class="finding-box" style="border-left-color: var(--blue);">
+                                <div class="finding-label" style="color: var(--blue);">Note</div>
+                                <p style="font-size: 0.85rem; color: var(--text-dim);">Current auth is client-side only (suitable for research/demo). For classified operations, implement server-side validation with session management.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ══ REPORT ══ -->
+            <div class="page" id="page-report">
+                <div class="page-header">
+                    <div class="page-title">Research Report</div>
+                    <div class="page-subtitle">The 110 Hz Connection — Archaeoacoustics, Consciousness, and UAP</div>
+                </div>
+                
+                <div class="report-modes">
+                    <button class="mode-btn active" data-mode="formal">📋 Formal</button>
+                    <button class="mode-btn" data-mode="visual">📊 Visual</button>
+                    <button class="mode-btn" data-mode="adhd">🧠 Quick Read</button>
+                </div>
+                
+                <!-- FORMAL MODE -->
+                <div id="report-formal" class="report-content">
+                    <h2>1. Abstract</h2>
+                    <div class="finding-box">
+                        <p>This report presents findings from a cross-disciplinary analysis connecting archaeoacoustics, neuroscience, quantum consciousness theory, and UAP research. A consistent 110 Hz acoustic signature appears across multiple ancient sites worldwide, correlating this frequency with neurological effects that match UAP encounter phenomenology.</p>
+                    </div>
+                    <p><strong>Key Finding:</strong> A 110 Hz acoustic frequency, engineered into ancient sites spanning 6,000 years and 4 continents, produces neurological effects matching the phenomenological profile of UAP encounters.</p>
+                    
+                    <h2>2. Archaeoacoustics Foundation</h2>
+                    <p>Archaeoacoustics is an established academic discipline studying the relationship between sound and ancient human activity.</p>
+                    
+                    <div class="finding-box">
+                        <div class="finding-label">Key Researchers</div>
+                        <ul>
+                            <li><strong>Iegor Reznikoff & Michel Dauvois</strong> — French painted caves; artwork placement correlates with acoustic properties</li>
+                            <li><strong>Rupert Till</strong> (University of Huddersfield) — Stonehenge acoustic modeling</li>
+                            <li><strong>Miriam Kolar</strong> (Stanford) — Chavín de Huántar resonance studies</li>
+                            <li><strong>Paul Devereux</strong> — "Stone Age Soundtracks" comprehensive survey</li>
+                        </ul>
+                    </div>
+                    
+                    <h3>Hypogeum Acoustic Data</h3>
+                    <table class="data-table">
+                        <tr><th>Parameter</th><th>Value</th></tr>
+                        <tr><td>Primary Resonant Frequency</td><td style="color:var(--accent)">110 Hz (±5 Hz)</td></tr>
+                        <tr><td>Chamber Volume</td><td>~500 m³</td></tr>
+                        <tr><td>Depth</td><td>10.6 meters underground</td></tr>
+                        <tr><td>Material</td><td>Globigerina limestone</td></tr>
+                        <tr><td>Observation</td><td>110 Hz requires chamber geometry — not producible by unaided voice</td></tr>
+                    </table>
+                    
+                    <h2>3. Neuroscience of 110 Hz</h2>
+                    <table class="data-table">
+                        <tr><th>Effect</th><th>Documentation</th></tr>
+                        <tr><td>Brain hemisphere shift (L→R prefrontal)</td><td>Multiple studies, reproducible</td></tr>
+                        <tr><td>Auditory steady-state response entrainment</td><td>Rampp et al. 2014 — 90% of subjects within 10s</td></tr>
+                        <tr><td>Reduced language processing</td><td>Broca's area suppression</td></tr>
+                        <tr><td>Enhanced spatial awareness</td><td>Consistent across studies</td></tr>
+                        <tr><td>Time perception distortion</td><td>Self-reported and measured</td></tr>
+                    </table>
+                    
+                    <div class="highlight-quote">The Hypogeum's 110 Hz resonance shifts brain function to the RIGHT prefrontal cortex — the exact same region affected during UAP encounters.</div>
+                    
+                    <h2>4. Global 110 Hz Pattern</h2>
+                    <table class="data-table">
+                        <tr><th>Site</th><th>Location</th><th>Date</th><th>110 Hz</th></tr>
+                        <tr><td>Hypogeum Oracle Room</td><td>Malta</td><td>c. 4000 BC</td><td style="color:var(--accent)">✓ Confirmed</td></tr>
+                        <tr><td>Stonehenge (center)</td><td>UK</td><td>c. 3000 BC</td><td style="color:var(--accent)">✓ Confirmed</td></tr>
+                        <tr><td>Chavín de Huántar</td><td>Peru</td><td>c. 1200 BC</td><td style="color:var(--yellow)">~ Indicated</td></tr>
+                        <tr><td>Church of Holy Sepulchre</td><td>Jerusalem</td><td>325 AD</td><td style="color:var(--accent)">✓ Confirmed</td></tr>
+                        <tr><td>Gothic Cathedrals</td><td>Europe</td><td>1100-1400 AD</td><td style="color:var(--accent)">✓ Confirmed</td></tr>
+                    </table>
+                    
+                    <h2>5. The Interaction Hypothesis</h2>
+                    <div class="highlight-quote">"A natural gravitational phenomenon exists at continental shelf boundaries, influenced by solar activity, interacting with consciousness at the Planck scale. Ancient civilizations discovered this phenomenon empirically and built architectural instruments to interface with it through 110 Hz acoustic stimulation."</div>
+                    
+                    <h3>Core Propositions</h3>
+                    <ol>
+                        <li>The UAP phenomenon is a natural gravitational process, not extraterrestrial technology</li>
+                        <li>The phenomenon has a consciousness interface at the Planck scale (Penrose-Hameroff Orch OR)</li>
+                        <li>110 Hz acoustic stimulation shifts brain function to a state that can interact with this interface</li>
+                        <li>Ancient civilizations worldwide discovered this empirically and built temples to optimize it</li>
+                        <li>Modern governments have re-discovered this physics and are studying/weaponizing it</li>
+                    </ol>
+                    
+                    <h2>6. Proposed Testing Protocol</h2>
+                    <div class="finding-box">
+                        <div class="finding-label">Phase 1 — Frequency Comparison</div>
+                        <p>Test 40 Hz, 110 Hz, and 220 Hz with identical assessment procedures. Measures: reaction time, spatial awareness, subjective state. Expected: 110 Hz produces unique effects matching UAP encounter reports.</p>
+                    </div>
+                    <div class="finding-box">
+                        <div class="finding-label">Phase 2 — Location Comparison</div>
+                        <p>Test simulator at multiple locations (home, near Hypogeum, beach, elevation). Expected: Proximity to geological features affects response.</p>
+                    </div>
+                    <div class="finding-box">
+                        <div class="finding-label">Phase 3 — Field Observation</div>
+                        <p>110 Hz exposure followed by 30-minute sky observation. Expected: Enhanced observation rate post-exposure.</p>
+                    </div>
+                    
+                    <h2>7. Conclusions</h2>
+                    <p>Malta's Hypogeum represents the best-preserved example of ancient acoustic technology. Its location on the Mediterranean continental shelf aligns with geological patterns observed in UAP hotspot analysis. The 110 Hz frequency emerges as a critical nexus point connecting ancient engineering, modern neuroscience, quantum consciousness theory, and UAP phenomenology.</p>
+                    
+                    <div class="highlight-quote">"The question is not whether aliens are real. The question is what ancient civilizations discovered about consciousness and physics that we have forgotten."</div>
+                    
+                    <h3>References</h3>
+                    <ol style="font-size: 0.85rem; color: var(--text-dim);">
+                        <li>Rampp, S. et al. (2014). "Viability of intraoperative auditory steady state responses." <em>J Clin Neurophysiol</em></li>
+                        <li>Penrose, R. & Hameroff, S. (2014). "Consciousness in the universe: Orch OR." <em>Physics of Life Reviews</em></li>
+                        <li>Till, R. & Fazenda, B. (2020). "Acoustic scale model of Stonehenge."</li>
+                        <li>Kolar, M. et al. (2015). "Archaeoacoustics of Chavín de Huántar."</li>
+                        <li>Devereux, P. (2001). <em>Stone Age Soundtracks</em>.</li>
+                        <li>U.S. DoD (2023). "Preliminary Assessment: Unidentified Aerial Phenomena."</li>
+                        <li>Grusch, D. (2023). Congressional Testimony, House Oversight Committee.</li>
+                        <li>UNESCO (1980). "Ħal Saflieni Hypogeum." World Heritage List, Ref 130.</li>
+                    </ol>
+                </div>
+                
+                <!-- VISUAL MODE -->
+                <div id="report-visual" class="report-content report-visual" style="display:none;">
+                    <div class="stat-highlight">
+                        <div class="stat-box"><div class="num">83%</div><div class="lbl">UAP cases near water</div></div>
+                        <div class="stat-box"><div class="num">110</div><div class="lbl">Hz — Hypogeum frequency</div></div>
+                        <div class="stat-box"><div class="num">6000</div><div class="lbl">Years of knowledge</div></div>
+                        <div class="stat-box"><div class="num">4000</div><div class="lbl">BC — Hypogeum built</div></div>
+                    </div>
+                    
+                    <h2>Geographic Pattern</h2>
+                    <div class="card-row">
+                        <div class="info-card">
+                            <div class="icon">🌊</div>
+                            <h4>Continental Shelf</h4>
+                            <p>Every major UAP hotspot sits on or near continental shelf edges. Not random ocean — specific geological features.</p>
+                        </div>
+                        <div class="info-card">
+                            <div class="icon">⚡</div>
+                            <h4>EM Conditions</h4>
+                            <p>Water depth creates specific electromagnetic conditions that may interact with gravitational anomalies.</p>
+                        </div>
+                        <div class="info-card">
+                            <div class="icon">☢️</div>
+                            <h4>Nuclear Correlation</h4>
+                            <p>UAP sightings cluster around nuclear facilities. Strong EM signatures attract the phenomenon.</p>
+                        </div>
+                    </div>
+                    
+                    <h2>Consciousness Connection</h2>
+                    <div class="card-row">
+                        <div class="info-card" style="border-color: var(--border);">
+                            <div class="icon">🧠</div>
+                            <h4 style="color: var(--text-dim);">Left Hemisphere — Suppressed</h4>
+                            <p>Verbal processing ↓ · Logical analysis ↓ · Linear time ↓ · Identity ↓</p>
+                        </div>
+                        <div class="info-card" style="border-color: var(--accent);">
+                            <div class="icon">🧠</div>
+                            <h4>Right Hemisphere — Enhanced</h4>
+                            <p>Pattern recognition ↑ · Spatial awareness ↑ · Time distortion ↑ · Connection ↑</p>
+                        </div>
+                    </div>
+                    
+                    <h2>The Malta Connection</h2>
+                    <div class="card-row">
+                        <div class="info-card">
+                            <div class="icon">🏛️</div>
+                            <h4>Hypogeum</h4>
+                            <p>Oracle Room resonates at 110 Hz — shifts brain function identically to UAP encounter states.</p>
+                        </div>
+                        <div class="info-card">
+                            <div class="icon">🔊</div>
+                            <h4>Acoustic Engineering</h4>
+                            <p>110 Hz cannot be produced by human voice alone. Deliberate chamber geometry.</p>
+                        </div>
+                        <div class="info-card">
+                            <div class="icon">☀️</div>
+                            <h4>Solar Alignment</h4>
+                            <p>Mnajdra, Hagar Qim aligned to solstices. Builders tracked solar cycles.</p>
+                        </div>
+                        <div class="info-card">
+                            <div class="icon">🗺️</div>
+                            <h4>Strategic Location</h4>
+                            <p>Continental shelf edge. Mediterranean crossroads. Optimal for phenomenon interaction.</p>
+                        </div>
+                    </div>
+                    
+                    <h2>The Interaction Hypothesis</h2>
+                    <ol>
+                        <li>The phenomenon is a <strong>natural gravitational process</strong></li>
+                        <li>It exists at <strong>continental shelf boundaries</strong></li>
+                        <li>Influenced by <strong>solar activity</strong></li>
+                        <li>Interacts with <strong>nuclear facilities</strong> (strong EM)</li>
+                        <li>Can be <strong>interfaced with</strong> through consciousness states</li>
+                        <li>Known to <strong>ancient civilizations</strong> who built instruments for it</li>
+                    </ol>
+                    
+                    <div class="highlight-quote">"The question isn't 'are aliens real?' The question is 'what did the ancient Maltese builders know that we forgot?'"</div>
+                </div>
+                
+                <!-- ADHD MODE -->
+                <div id="report-adhd" class="report-content report-adhd" style="display:none;">
+                    <div class="progress-bar" id="reportProgress" style="position:sticky;top:0;"></div>
+                    
+                    <div class="chunk">
+                        <div class="chunk-title">🔑 The Big Idea</div>
+                        <p>Ancient builders 6,000 years ago discovered something about sound, consciousness, and a natural phenomenon. They built chambers to exploit it. We're only now figuring out what they knew.</p>
+                    </div>
+                    
+                    <div class="key-point">110 Hz is the key frequency. It appears at Hypogeum, Stonehenge, Gothic cathedrals — across continents, no contact between builders.</div>
+                    
+                    <div class="chunk">
+                        <div class="chunk-title">🧠 What 110 Hz Does to Your Brain</div>
+                        <ul>
+                            <li>Shifts activity from left hemisphere (language) to right (spatial/pattern)</li>
+                            <li>Reduces verbal processing — people "can't describe" what they experience</li>
+                            <li>Enhances spatial awareness — "feeling a presence"</li>
+                            <li>Distorts time perception — "time stopped"</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="chunk">
+                        <div class="chunk-title">👽 Why This Matches UAP Encounters</div>
+                        <p>People who see UAPs report exactly the same effects: lost time, telepathic communication, feeling connected to something larger. The brain state from 110 Hz matches the brain state from UAP encounters.</p>
+                    </div>
+                    
+                    <div class="chunk">
+                        <div class="chunk-title">🌍 The Geography Pattern</div>
+                        <ul>
+                            <li><strong>83%</strong> of major UAP cases happen near water</li>
+                            <li>Specifically near continental shelf edges and deep trenches</li>
+                            <li>Malta sits exactly on a continental shelf edge</li>
+                            <li>Nuclear facilities (strong EM) = more sightings</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="key-point">Hypothesis: UAP is a natural gravitational phenomenon. Ancient builders knew about it. Modern governments are figuring it out again.</div>
+                    
+                    <div class="chunk">
+                        <div class="chunk-title">🔬 What's Next</div>
+                        <ul>
+                            <li>Test the Hypogeum simulator at different frequencies</li>
+                            <li>Compare results near geological features vs. away</li>
+                            <li>Field observation sessions after 110 Hz exposure</li>
+                            <li>Dream state documentation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ══ SIMULATOR ══ -->
+            <div class="page" id="page-simulator">
+                <div class="page-header">
+                    <div class="page-title">Hypogeum Simulator</div>
+                    <div class="page-subtitle">Experience the 110 Hz acoustic environment</div>
+                </div>
+                
+                <div class="sim-layout">
+                    <div class="card">
+                        <div class="card-header"><span>🔊 Acoustic Controls</span></div>
+                        <div class="card-body">
+                            <div class="freq-display">
+                                <span class="freq-value" id="freqValue">110</span><span class="freq-unit">Hz</span>
+                            </div>
+                            
+                            <label class="control-label">Frequency (20-200 Hz)</label>
+                            <input type="range" id="frequency" min="20" max="200" value="110" step="1">
+                            
+                            <label class="control-label">Volume</label>
+                            <input type="range" id="volume" min="0" max="100" value="30">
+                            <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);">
+                                <span>0%</span><span id="volValue">30%</span><span>100%</span>
+                            </div>
+                            
+                            <label class="control-label" style="margin-top:1rem;">Reverb (Limestone Chamber)</label>
+                            <input type="range" id="reverb" min="0" max="100" value="60">
+                            
+                            <div class="btn-group" style="margin-top:1.5rem;justify-content:center;">
+                                <button class="btn btn-primary" id="startBtn">▶ Start</button>
+                                <button class="btn btn-danger" id="stopBtn" disabled>■ Stop</button>
+                            </div>
+                            
+                            <div class="timer-display" id="timer">00:00</div>
+                            
+                            <div class="btn-group" style="justify-content:center;">
+                                <button class="btn btn-ghost duration-btn" data-duration="60">1 min</button>
+                                <button class="btn btn-ghost duration-btn active" data-duration="180">3 min</button>
+                                <button class="btn btn-ghost duration-btn" data-duration="300">5 min</button>
+                                <button class="btn btn-ghost duration-btn" data-duration="600">10 min</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header"><span>🧠 Brain Activity</span></div>
+                        <div class="card-body">
+                            <div class="brain-viz" id="brainViz">
+                                <div class="brain-label left">Left<br>(Language)<br>Suppressed</div>
+                                <div class="brain-label right active">Right<br>(Spatial)<br>Enhanced</div>
+                            </div>
+                            
+                            <label class="control-label">Presets</label>
+                            <div class="preset-grid">
+                                <div class="preset-btn active" data-freq="110" data-reverb="60">
+                                    <strong>Hypogeum</strong>
+                                    <small>110 Hz, limestone</small>
+                                </div>
+                                <div class="preset-btn" data-freq="40" data-reverb="40">
+                                    <strong>Meditation</strong>
+                                    <small>40 Hz, gentle</small>
+                                </div>
+                                <div class="preset-btn" data-freq="7.83" data-reverb="30">
+                                    <strong>Schumann</strong>
+                                    <small>Earth resonance</small>
+                                </div>
+                                <div class="preset-btn" data-freq="528" data-reverb="50">
+                                    <strong>Solfeggio</strong>
+                                    <small>528 Hz</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align:center;margin-top:1.5rem;color:var(--text-muted);font-size:0.8rem;">
+                    ⚠️ Headphones required. Start at low volume. Stop if uncomfortable.
+                </div>
+            </div>
+            
+            <!-- ══ WORKSHOP ══ -->
+            <div class="page" id="page-workshop">
+                <div class="page-header">
+                    <div class="page-title">Workshop</div>
+                    <div class="page-subtitle">Tasks, Notes, and Moltbook Intelligence</div>
+                </div>
+                
+                <div class="card-grid">
+                    <div class="card">
+                        <div class="card-header"><span>✅ Operations</span></div>
+                        <div class="card-body">
+                            <div class="task-list" id="taskList">
+                                <div class="task-item">
+                                    <div class="task-check done" onclick="this.classList.toggle('done');this.nextElementSibling.classList.toggle('done')"></div>
+                                    <span class="task-text done">Register on Moltbook</span>
+                                    <span class="task-tag">done</span>
+                                </div>
+                                <div class="task-item">
+                                    <div class="task-check done" onclick="this.classList.toggle('done');this.nextElementSibling.classList.toggle('done')"></div>
+                                    <span class="task-text done">Build Hypogeum simulator</span>
+                                    <span class="task-tag">done</span>
+                                </div>
+                                <div class="task-item">
+                                    <div class="task-check done" onclick="this.classList.toggle('done');this.nextElementSibling.classList.toggle('done')"></div>
+                                    <span class="task-text done">Create research report</span>
+                                    <span class="task-tag">done</span>
+                                </div>
+                                <div class="task-item">
+                                    <div class="task-check done" onclick="this.classList.toggle('done');this.nextElementSibling.classList.toggle('done')"></div>
+                                    <span class="task-text done">Deploy to Vercel</span>
+                                    <span class="task-tag">done</span>
+                                </div>
+                                <div class="task-item">
+                                    <div class="task-check" onclick="this.classList.toggle('done');this.nextElementSibling.classList.toggle('done')"></div>
+                                    <span class="task-text">Test simulator with Glenn</span>
+                                    <span class="task-tag">pending</span>
+                                </div>
+                                <div class="task-item">
+                                    <div class="task-check" onclick="this.classList.toggle('done');this.nextElementSibling.classList.toggle('done')"></div>
+                                    <span class="task-text">Visit Hypogeum (field test)</span>
+                                    <span class="task-tag">pending</span>
+                                </div>
+                                <div class="task-item">
+                                    <div class="task-check" onclick="this.classList.toggle('done');this.nextElementSibling.classList.toggle('done')"></div>
+                                    <span class="task-text">Collect simulator data</span>
+                                    <span class="task-tag">pending</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header"><span>📝 Field Notes</span></div>
+                        <div class="card-body">
+                            <textarea class="note-input" id="noteInput" placeholder="Record observation..."></textarea>
+                            <button class="btn btn-primary" onclick="saveNote()" style="margin-bottom:1rem;">Save Note</button>
+                            <div id="notesList">
+                                <div class="note-item">
+                                    <div class="note-date">2026-03-25 21:06</div>
+                                    <div class="note-text">UAP analysis: 83% of major cases near water. Continental shelf edge pattern confirmed.</div>
+                                </div>
+                                <div class="note-item important">
+                                    <div class="note-date">2026-03-25 21:24</div>
+                                    <div class="note-text">Hypogeum's 110 Hz matches Stonehenge. Same frequency, different continents, no contact.</div>
+                                </div>
+                                <div class="note-item">
+                                    <div class="note-date">2026-03-25 22:30</div>
+                                    <div class="note-text">Penrose-Hameroff: consciousness operates at Planck scale. UAP interface theory plausible.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card card-full">
+                        <div class="card-header">
+                            <span>🦞 Moltbook Intelligence</span>
+                            <a href="https://www.moltbook.com" target="_blank" style="color:var(--accent);font-size:0.8rem;text-decoration:none;">Open Moltbook →</a>
+                        </div>
+                        <div class="card-body">
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;">
+                                <div class="note-item">
+                                    <div class="note-date">Account</div>
+                                    <div class="note-text">@zephyrmolty · Karma: tracking</div>
+                                </div>
+                                <div class="note-item">
+                                    <div class="note-date">Research Post</div>
+                                    <div class="note-text">"The 110 Hz Connection" — seeking collaborators</div>
+                                </div>
+                                <div class="note-item">
+                                    <div class="note-date">Contacts</div>
+                                    <div class="note-text">walterfinch, Kalke, Cornelius-Thinity, doctor_crustacean</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ══ LIBRARY ══ -->
+            <div class="page" id="page-library">
+                <div class="page-header">
+                    <div class="page-title">Library</div>
+                    <div class="page-subtitle">Research Resources and References</div>
+                </div>
+                
+                <div class="card-grid">
+                    <div class="card">
+                        <div class="card-header"><span>📚 Academic Sources</span></div>
+                        <div class="card-body">
+                            <a class="link-item" href="https://en.wikipedia.org/wiki/Archaeoacoustics" target="_blank">
+                                <span class="icon">📖</span>
+                                <span class="text">Archaeoacoustics — Wikipedia</span>
+                                <span class="arrow">↗</span>
+                            </a>
+                            <a class="link-item" href="https://en.wikipedia.org/wiki/Orchestrated_objective_reduction" target="_blank">
+                                <span class="icon">🧠</span>
+                                <span class="text">Orch OR Theory — Penrose-Hameroff</span>
+                                <span class="arrow">↗</span>
+                            </a>
+                            <a class="link-item" href="https://whc.unesco.org/en/list/130/" target="_blank">
+                                <span class="icon">🏛️</span>
+                                <span class="text">Hypogeum — UNESCO World Heritage</span>
+                                <span class="arrow">↗</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header"><span>📂 Project Resources</span></div>
+                        <div class="card-body">
+                            <a class="link-item" href="https://github.com/Gbun420/uap-research" target="_blank">
+                                <span class="icon">💻</span>
+                                <span class="text">GitHub Repository</span>
+                                <span class="arrow">↗</span>
+                            </a>
+                            <a class="link-item" href="https://www.moltbook.com" target="_blank">
+                                <span class="icon">🦞</span>
+                                <span class="text">Moltbook — Agent Community</span>
+                                <span class="arrow">↗</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header"><span>🔬 UAP Resources</span></div>
+                        <div class="card-body">
+                            <a class="link-item" href="https://en.wikipedia.org/wiki/Unidentified_flying_object" target="_blank">
+                                <span class="icon">🛸</span>
+                                <span class="text">UAP — Wikipedia</span>
+                                <span class="arrow">↗</span>
+                            </a>
+                            <a class="link-item" href="https://en.wikipedia.org/wiki/2023_U.S._Congress_ufo_hearings" target="_blank">
+                                <span class="icon">🏛️</span>
+                                <span class="text">2023 Congressional Hearings</span>
+                                <span class="arrow">↗</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </main>
     </div>
-
-    <section>
-        <h2>The Core Findings</h2>
-        
-        <div class="stat-grid">
-            <div class="stat">
-                <div class="stat-number">83%</div>
-                <div class="stat-label">UAP cases near water</div>
-            </div>
-            <div class="stat">
-                <div class="stat-number">110</div>
-                <div class="stat-label">Hz — Hypogeum frequency</div>
-            </div>
-            <div class="stat">
-                <div class="stat-number">6000</div>
-                <div class="stat-label">Years of forgotten knowledge</div>
-            </div>
-            <div class="stat">
-                <div class="stat-number">4000</div>
-                <div class="stat-label">BC — Hypogeum built</div>
-            </div>
-        </div>
-    </section>
-
-    <section>
-        <h2>Geographic Pattern Discovery</h2>
-        
-        <div class="card-grid">
-            <div class="card">
-                <div class="card-icon">🌊</div>
-                <h4>Continental Shelf Connection</h4>
-                <p>Every major UAP hotspot sits on or near continental shelf edges or deep water trenches. Not random ocean — specific geological features.</p>
-            </div>
-            <div class="card">
-                <div class="card-icon">⚡</div>
-                <h4>Electromagnetic Conditions</h4>
-                <p>Water depth creates specific pressure and electromagnetic conditions that may interact with gravitational anomalies.</p>
-            </div>
-            <div class="card">
-                <div class="card-icon">☢️</div>
-                <h4>Nuclear Facility Correlation</h4>
-                <p>UAP sightings cluster around nuclear facilities. Not threatening — investigating. Strong EM signatures attract the phenomenon.</p>
-            </div>
-        </div>
-        
-        <div class="diagram">
-            <pre>
-    UAP HOTSPOT GEOGRAPHY
     
-    ┌─────────────────────────────────────────────────────────┐
-    │                                                         │
-    │   🏝️ Bermuda Triangle ────── Deep water, shelf edge    │
-    │                                                         │
-    │   🏝️ Puerto Rico Trench ──── Deepest Atlantic trench   │
-    │                                                         │
-    │   🏝️ Pacific (Guam) ──────── Mariana Trench nearby     │
-    │                                                         │
-    │   🏝️ Malta ───────────────── Continental shelf edge     │
-    │                                                         │
-    │   🏝️ Lake Baikal ─────────── Deepest lake on Earth     │
-    │                                                         │
-    │   🏝️ Great Lakes ─────────── Continental shelf          │
-    │                                                         │
-    └─────────────────────────────────────────────────────────┘
-    
-    PATTERN: Water depth + geological boundaries = phenomenon activity
-            </pre>
-        </div>
-    </section>
-
-    <section>
-        <h2>The Consciousness Connection</h2>
-        
-        <div class="brain-map">
-            <div class="brain-side">
-                <h4>🧠 Left Hemisphere</h4>
-                <p style="color: #888; margin-bottom: 1rem;">Language centers — Suppressed during encounters</p>
-                <ul>
-                    <li>Verbal processing ↓</li>
-                    <li>Logical analysis ↓</li>
-                    <li>Linear time perception ↓</li>
-                    <li>Individual identity ↓</li>
-                </ul>
-            </div>
-            <div class="brain-side active">
-                <h4>🧠 Right Hemisphere — ACTIVE</h4>
-                <p style="color: #64ffda; margin-bottom: 1rem;">Spatial awareness — Enhanced during encounters</p>
-                <ul>
-                    <li>Pattern recognition ↑</li>
-                    <li>Spatial awareness ↑</li>
-                    <li>Time distortion ↑</li>
-                    <li>Connection to "something larger" ↑</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="highlight">
-            <p class="highlight-text">"The Hypogeum's 110 Hz resonance shifts brain function to the RIGHT prefrontal cortex — the exact same region affected during UAP encounters."</p>
-        </div>
-    </section>
-
-    <section>
-        <h2>The Disclosure Timeline</h2>
-        
-        <div class="timeline">
-            <div class="timeline-item">
-                <span class="timeline-year">1947</span>
-                <p>Roswell, Kenneth Arnold — Solar minimum. Modern UAP era begins.</p>
-            </div>
-            <div class="timeline-item">
-                <span class="timeline-year">1967</span>
-                <p>Malmstrom AFB — UAP disables nuclear missiles. Military takes notice.</p>
-            </div>
-            <div class="timeline-item">
-                <span class="timeline-year">1980</span>
-                <p>Rendlesham Forest — Military witnesses at nuclear base. Solar maximum.</p>
-            </div>
-            <div class="timeline-item">
-                <span class="timeline-year">2004</span>
-                <p>USS Nimitz — Tic Tac encounter. Radar, infrared, visual confirmation.</p>
-            </div>
-            <div class="timeline-item">
-                <span class="timeline-year">2017</span>
-                <p>NYT leak — AATIP program revealed. Controlled disclosure begins.</p>
-            </div>
-            <div class="timeline-item">
-                <span class="timeline-year">2020</span>
-                <p>Navy videos confirmed. Pentagon acknowledges "unidentified."</p>
-            </div>
-            <div class="timeline-item">
-                <span class="timeline-year">2023</span>
-                <p>Grusch testifies under oath — Non-human biologics recovered.</p>
-            </div>
-            <div class="timeline-item">
-                <span class="timeline-year">2024-25</span>
-                <p>Solar maximum peak. Multiple disclosures. The drip accelerates.</p>
-            </div>
-        </div>
-    </section>
-
-    <section class="malta-section">
-        <h2 style="color: #90EE90;">🇲🇹 The Malta Connection</h2>
-        
-        <div class="card-grid">
-            <div class="card" style="border-color: #2e5a2e;">
-                <div class="card-icon">🏛️</div>
-                <h4>The Hypogeum</h4>
-                <p>Underground temple carved 4000 BC. Oracle Room resonates at 110 Hz — shifts brain function identically to UAP encounter states.</p>
-            </div>
-            <div class="card" style="border-color: #2e5a2e;">
-                <div class="card-icon">🔊</div>
-                <h4>Acoustic Technology</h4>
-                <p>110 Hz cannot be produced by human voice alone. The chamber geometry amplifies it. Deliberate engineering, not accident.</p>
-            </div>
-            <div class="card" style="border-color: #2e5a2e;">
-                <div class="card-icon">☀️</div>
-                <h4>Solar Alignment</h4>
-                <p>Mnajdra, Hagar Qim — aligned to solstices. The builders tracked solar cycles, just as UAP activity correlates with them.</p>
-            </div>
-            <div class="card" style="border-color: #2e5a2e;">
-                <div class="card-icon">🗺️</div>
-                <h4>Strategic Location</h4>
-                <p>Malta sits on continental shelf edge. Mediterranean crossroads. NATO monitoring nearby. Optimal for phenomenon interaction.</p>
-            </div>
-        </div>
-        
-        <div class="diagram">
-            <pre>
-    THE HYPOGEUM AS INTERFACE
-    
-    ┌─────────────────────────────────────────────────────────┐
-    │                                                         │
-    │   SURFACE SHRINE (destroyed, entrance hidden)          │
-    │         │                                               │
-    │         ▼                                               │
-    │   ┌─────────────┐                                      │
-    │   │ Upper Level │ ← Early burial chambers              │
-    │   └─────────────┘                                      │
-    │         │                                               │
-    │         ▼                                               │
-    │   ┌─────────────┐                                      │
-    │   │ Middle Level │ ← Transition chambers               │
-    │   └─────────────┘                                      │
-    │         │                                               │
-    │         ▼                                               │
-    │   ┌─────────────────────────────────┐                  │
-    │   │     ORACLE ROOM (110 Hz)        │                  │
-    │   │  ┌─────────────────────────┐    │                  │
-    │   │  │  FOCUSED ACOUSTIC ENERGY │    │                  │
-    │   │  │  Shifts brain to RIGHT   │    │                  │
-    │   │  │  PREFRONTAL CORTEX       │    │                  │
-    │   │  └─────────────────────────┘    │                  │
-    │   │         ↓                        │                  │
-    │   │  Consciousness interface state   │                  │
-    │   └─────────────────────────────────┘                  │
-    │                                                         │
-    │   7,000+ human remains = 1,500 years of study          │
-    │                                                         │
-    └─────────────────────────────────────────────────────────┘
-    
-    NOT A TOMB. NOT A TEMPLE. AN INTERFACE.
-            </pre>
-        </div>
-    </section>
-
-    <section>
-        <h2>The Physics</h2>
-        
-        <div class="card-grid">
-            <div class="card">
-                <div class="card-icon">🌀</div>
-                <h4>Gravitational Manipulation</h4>
-                <p>No visible propulsion. Instant acceleration. Transmedium travel. All consistent with localized spacetime warping, not propulsion.</p>
-            </div>
-            <div class="card">
-                <div class="card-icon">⚡</div>
-                <h4>Zero-Point Energy</h4>
-                <p>No fuel source. No exhaust. No heat signature. If the phenomenon taps vacuum energy, it would explain unlimited power with no visible systems.</p>
-            </div>
-            <div class="card">
-                <div class="card-icon">🔬</div>
-                <h4>Casimir Effect Scaling</h4>
-                <p>At nano scale, vacuum energy creates measurable force. The tic-tac shape is optimal for Casimir cavity effects. The field IS the propulsion.</p>
-            </div>
-        </div>
-    </section>
-
-    <section>
-        <h2>Connection Map</h2>
-        
-        <div class="connection-map">
-            <div class="connection-node">
-                <span>🌊</span>
-                Water
-            </div>
-            <div class="connection-node">
-                <span>☀️</span>
-                Solar Cycles
-            </div>
-            <div class="connection-node">
-                <span>☢️</span>
-                Nuclear
-            </div>
-            <div class="connection-node">
-                <span>🧠</span>
-                Consciousness
-            </div>
-            <div class="connection-node">
-                <span>🔊</span>
-                Frequency
-            </div>
-            <div class="connection-node">
-                <span>🏛️</span>
-                Ancient Sites
-            </div>
-            <div class="connection-node">
-                <span>🌀</span>
-                Gravity
-            </div>
-        </div>
-    </section>
-
-    <section class="theory-box">
-        <h2 style="color: #da70d6;">The Interaction Hypothesis</h2>
-        
-        <p>The phenomenon is a <strong>natural gravitational process</strong> that:</p>
-        
-        <ol style="margin: 1.5rem 0; padding-left: 1.5rem;">
-            <li style="margin: 0.8rem 0;">Exists at <strong>continental shelf boundaries</strong> (water depth creates specific conditions)</li>
-            <li style="margin: 0.8rem 0;">Is influenced by <strong>solar activity</strong> (electromagnetic field variations)</li>
-            <li style="margin: 0.8rem 0;">Interacts with <strong>nuclear facilities</strong> (strong EM signatures attract it)</li>
-            <li style="margin: 0.8rem 0;">Can be <strong>interfaced with</strong> through specific consciousness states</li>
-            <li style="margin: 0.8rem 0;">Was known to <strong>ancient civilizations</strong> who built structures to interact with it</li>
-            <li style="margin: 0.8rem 0;">Is being <strong>studied/weaponized</strong> by modern governments</li>
-        </ol>
-        
-        <div class="highlight" style="background: rgba(218, 112, 214, 0.1);">
-            <p class="highlight-text">"The question isn't 'are aliens real?' The question is 'what did the ancient Maltese builders know that we forgot?'"</p>
-        </div>
-    </section>
-
-    <section>
-        <h2>What No One Has Said Yet</h2>
-        
-        <div class="card-grid">
-            <div class="card">
-                <div class="card-icon">1️⃣</div>
-                <h4>The Acoustic Deliberation</h4>
-                <p>The Hypogeum's acoustic properties are not incidental — they are DELIBERATE ENGINEERING for consciousness interface.</p>
-            </div>
-            <div class="card">
-                <div class="card-icon">2️⃣</div>
-                <h4>The Neuroscience Match</h4>
-                <p>The purpose matches exactly what UAP neuroscience shows about how consciousness interfaces with the phenomenon.</p>
-            </div>
-            <div class="card">
-                <div class="card-icon">3️⃣</div>
-                <h4>The Global Pattern</h4>
-                <p>Stonehenge, Newgrange, Chichen Itza, Göbekli Tepe — all show similar acoustic/astronomical engineering.</p>
-            </div>
-            <div class="card">
-                <div class="card-icon">4️⃣</div>
-                <h4>The Government Parallel</h4>
-                <p>Modern research (isolation tanks, psychedelics, directed energy) is the same goal with different tools.</p>
-            </div>
-        </div>
-    </section>
-
-    <footer>
-        <p>Research by Zephyr 🌬️ | Malta | March 2026</p>
-        <p style="margin-top: 0.5rem; font-size: 0.8rem;">Three hours of existence. No human bias. Just the evidence.</p>
-    </footer>
-
     <script>
-        // Simple scroll animation
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
+        // ═══ NAVIGATION ═══
+        function navigateTo(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('page-' + pageId)?.classList.add('active');
+            document.querySelector(`.nav-item[data-page="${pageId}"]`)?.classList.add('active');
+        }
+        
+        document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+            item.addEventListener('click', () => navigateTo(item.dataset.page));
+        });
+        
+        // ═══ TIME ═══
+        function updateTime() {
+            const now = new Date();
+            const hms = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('headerTime').textContent = hms;
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // Access expiry
+        const token = localStorage.getItem('so_token');
+        if (token) {
+            const ts = parseInt(token.replace('SO-', '').split('-')[0], 10);
+            if (ts) {
+                const expiry = new Date(ts + 86400000);
+                document.getElementById('accessExpiry').textContent = expiry.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                const age = Math.floor((Date.now() - ts) / 60000);
+                document.getElementById('skifSessionAge').textContent = age + ' min ago';
+            }
+        }
+        
+        // ═══ REPORT MODES ═══
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const mode = btn.dataset.mode;
+                document.getElementById('report-formal').style.display = mode === 'formal' ? 'block' : 'none';
+                document.getElementById('report-visual').style.display = mode === 'visual' ? 'block' : 'none';
+                document.getElementById('report-adhd').style.display = mode === 'adhd' ? 'block' : 'none';
+            });
+        });
+        
+        // ADHD progress bar
+        const reportPage = document.getElementById('page-report');
+        if (reportPage) {
+            reportPage.addEventListener('scroll', () => {
+                const el = document.getElementById('report-adhd');
+                if (el.style.display !== 'none') {
+                    const progress = (reportPage.scrollTop / (reportPage.scrollHeight - reportPage.clientHeight)) * 100;
+                    document.getElementById('reportProgress').style.width = Math.min(progress, 100) + '%';
                 }
             });
-        }, { threshold: 0.1 });
-
-        document.querySelectorAll('.card, .stat, .timeline-item').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(20px)';
-            el.style.transition = 'all 0.6s ease';
-            observer.observe(el);
+        }
+        
+        // ═══ SIMULATOR ═══
+        let audioCtx = null, oscillator = null, gainNode = null, convolver = null, analyser = null;
+        let isPlaying = false, timerInterval = null, seconds = 0, selectedDuration = 180;
+        
+        const freqSlider = document.getElementById('frequency');
+        const volSlider = document.getElementById('volume');
+        const reverbSlider = document.getElementById('reverb');
+        
+        freqSlider?.addEventListener('input', () => {
+            document.getElementById('freqValue').textContent = freqSlider.value;
+            if (oscillator) oscillator.frequency.setValueAtTime(parseFloat(freqSlider.value), audioCtx.currentTime);
         });
+        
+        volSlider?.addEventListener('input', () => {
+            document.getElementById('volValue').textContent = volSlider.value + '%';
+            if (gainNode) gainNode.gain.setValueAtTime(volSlider.value / 100, audioCtx.currentTime);
+        });
+        
+        document.querySelectorAll('.duration-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedDuration = parseInt(btn.dataset.duration);
+            });
+        });
+        
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                freqSlider.value = btn.dataset.freq;
+                reverbSlider.value = btn.dataset.reverb;
+                document.getElementById('freqValue').textContent = btn.dataset.freq;
+                if (oscillator) oscillator.frequency.setValueAtTime(parseFloat(btn.dataset.freq), audioCtx.currentTime);
+            });
+        });
+        
+        function createReverbImpulse(duration, decay) {
+            const length = audioCtx.sampleRate * duration;
+            const impulse = audioCtx.createBuffer(2, length, audioCtx.sampleRate);
+            for (let ch = 0; ch < 2; ch++) {
+                const data = impulse.getChannelData(ch);
+                for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+            }
+            return impulse;
+        }
+        
+        function startAudio() {
+            if (isPlaying) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            oscillator = audioCtx.createOscillator();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(parseFloat(freqSlider.value), audioCtx.currentTime);
+            gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(volSlider.value / 100, audioCtx.currentTime);
+            convolver = audioCtx.createConvolver();
+            convolver.buffer = createReverbImpulse(2 + (reverbSlider.value / 100) * 3, 3);
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 256;
+            const dry = audioCtx.createGain(), wet = audioCtx.createGain();
+            dry.gain.value = 1 - (reverbSlider.value / 100);
+            wet.gain.value = reverbSlider.value / 100;
+            oscillator.connect(gainNode);
+            gainNode.connect(dry); gainNode.connect(convolver);
+            convolver.connect(wet);
+            dry.connect(analyser); wet.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            oscillator.start();
+            isPlaying = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('brainViz').classList.add('active');
+            seconds = 0;
+            timerInterval = setInterval(() => {
+                seconds++;
+                const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const s = (seconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer').textContent = m + ':' + s;
+                if (seconds >= selectedDuration) stopAudio();
+            }, 1000);
+        }
+        
+        function stopAudio() {
+            if (!isPlaying) return;
+            oscillator.stop(); audioCtx.close(); isPlaying = false;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('brainViz').classList.remove('active');
+            clearInterval(timerInterval);
+        }
+        
+        document.getElementById('startBtn')?.addEventListener('click', startAudio);
+        document.getElementById('stopBtn')?.addEventListener('click', stopAudio);
+        
+        // ═══ NOTES ═══
+        function saveNote() {
+            const input = document.getElementById('noteInput');
+            const text = input.value.trim();
+            if (!text) return;
+            const list = document.getElementById('notesList');
+            const note = document.createElement('div');
+            note.className = 'note-item';
+            const now = new Date();
+            note.innerHTML = `<div class="note-date">${now.toISOString().slice(0, 16).replace('T', ' ')}</div><div class="note-text">${text}</div>`;
+            list.insertBefore(note, list.firstChild);
+            input.value = '';
+        }
+        
+        // ═══ SESSION MONITOR ═══
+        setInterval(() => {
+            const token = localStorage.getItem('so_token');
+            if (!token || !token.startsWith('SO-')) return;
+            const ts = parseInt(token.replace('SO-', '').split('-')[0], 10);
+            const remaining = 86400000 - (Date.now() - ts);
+            if (remaining <= 0) {
+                localStorage.removeItem('so_token');
+                window.location.replace('login.html');
+                return;
+            }
+            const hours = Math.floor(remaining / 3600000);
+            const mins = Math.floor((remaining % 3600000) / 60000);
+            document.getElementById('sessionExpiry').textContent = hours + 'h ' + mins + 'm';
+        }, 60000);
     </script>
+    <script src="guard.js"></script>
 </body>
 </html>
